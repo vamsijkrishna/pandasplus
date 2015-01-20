@@ -52,3 +52,7 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# pandasplus data folder
+data/
+*.DS_Store
