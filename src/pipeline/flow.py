@@ -123,7 +123,10 @@ class Builder(object):
                 raise InvalidSettingException("Fail to match regex", source_regex, raw_input_file)
             parameters = match.groupdict()
             print parameters
-            raise Exception("Not fully implemented yet!", match)
+            df = self._to_df(raw_input_file)
+            for k,v in parameters.items():
+                df[k] = v
+            self._run_helper(df)
         elif not source_setts:
             df = self._to_df(raw_input_file)
             self._run_helper(df)
@@ -167,8 +170,8 @@ class Builder(object):
             gconf = self._get_config([GLOBAL, TRANSFORM], optional=True)
 
             mydf = self._computed_columns(gconf, mydf, agg, pk)
+            print "Agg=",agg
             mydf = self._computed_columns(table_conf, mydf, agg, pk)
-
             if "depths" in setts:
                 table = self._depth_combos(mydf, agg, pk, setts)
             else:

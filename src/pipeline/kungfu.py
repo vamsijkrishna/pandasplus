@@ -1,7 +1,7 @@
 # kungfu.py
 from importlib import import_module
 import pandas as pd
-import plugins
+# import src.plugins
 from consts import *
 
 
@@ -57,7 +57,10 @@ def process_operation(df, colname, settings, agg=None, pk=[]):
             df.loc[cond, colname] = df.loc[cond,target].map(func)
         elif VALUE in settings:
             val = settings[VALUE]
-            df.loc[cond, colname] = 1
+            df.loc[cond, colname] = val
+        elif COPY_COL in settings:
+            col = settings[COPY_COL]
+            df.loc[cond, colname] = df[col]
 
     elif settings[TYPE] == ZFILL and ((colname in agg) or (colname in pk)): # -- do selective application
         size = settings[SIZE]
@@ -71,4 +74,21 @@ def process_operation(df, colname, settings, agg=None, pk=[]):
             del df[colname]
     elif settings[TYPE] == CLONE:
         df[colname] = settings[SOURCE]
+    elif settings[TYPE] == UNSTACK:
+        target = settings[TARGET]
+        target_index = len(pk)
+        target_pk = pk + [target]
+        df = df.reset_index()
+        df = df.groupby(target_pk).agg(agg)
+        df = df.unstack(target_index)
+        agg_map = {t[0]:u''.join(t) for t in df.columns}
+        df.columns = [u''.join(t) for t in df.columns ]
+        # update agg!
+        for k,v in agg_map.items():
+            tmp = agg[k]
+            del agg[k]
+            agg[v] = tmp
+
+        df = df.reset_index()
+
     return df

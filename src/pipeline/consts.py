@@ -53,6 +53,8 @@ NAN='nan'
 RENAME='rename'
 DELTA='delta'
 ENCODING='encoding'
+COPY_COL = 'copy_col'
+UNSTACK = 'unstack'
 
 ENV_FTP_HOST='PP_FTP_HOST'
 ENV_FTP_USER='PP_FTP_USER'
