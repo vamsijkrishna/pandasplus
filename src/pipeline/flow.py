@@ -114,19 +114,36 @@ class Builder(object):
     def run(self):
         raw_input_file = self._get_config([GLOBAL, SOURCE])
         source_setts = self._get_config([GLOBAL, SOURCE_SETTING], optional=True)
-        source_regex = self._get_config([GLOBAL, SOURCE_REGEX], optional=True)
+        source_vars = self._get_config([GLOBAL, SOURCE_VARS], optional=True)
 
-        if source_regex:
-            print source_regex
-            match = re.match(source_regex, raw_input_file)
-            if not match:
-                raise InvalidSettingException("Fail to match regex", source_regex, raw_input_file)
-            parameters = match.groupdict()
-            print parameters
-            df = self._to_df(raw_input_file)
-            for k,v in parameters.items():
-                df[k] = v
-            self._run_helper(df)
+        if source_vars:
+            s_vars = re.findall("<(\w+)>", raw_input_file)
+            ds = {}
+            for var in s_vars:
+                params = source_vars[var]
+                ds[var] = range(params["start"], params["end"] + 1)
+
+            labels = ds.keys()
+            combos = itertools.product(*ds.values())
+            print labels
+
+            for combo in combos:
+                var_map = {}
+                tmp_file = raw_input_file
+                for idx, var in enumerate(labels):
+                    val = str(combo[idx])
+                    if ZFILL in source_vars[var]:
+                        val = val.zfill( source_vars[var][ZFILL] )
+                    tmp_file = tmp_file.replace( "<{}>".format(var) , val )
+                    var_map[var] = val
+
+                print tmp_file, combo
+                df = self._to_df(tmp_file, var_map=var_map)
+                for idx, label in enumerate(labels):
+                    df[label] = combo[idx]
+                print df.head()
+                self._run_helper(df, var_map=var_map)
+
         elif not source_setts:
             df = self._to_df(raw_input_file)
             self._run_helper(df)
@@ -143,7 +160,7 @@ class Builder(object):
                 self._run_helper(df, var=curr)
                 curr += step
 
-    def _run_helper(self, df, var=None):
+    def _run_helper(self, df, var_map=None):
         print "Starting!"
 
         print "Renaming DF columns..."
@@ -165,6 +182,8 @@ class Builder(object):
             pk = setts["pk"]
             agg = self._get_setting(AGG, setts)
             agg = self.aggs if not agg else self._build_agg(agg)
+            agg = {k:v for k,v in agg.items()} # deep copy
+
             ''' Do we need to add any computation before aggregating? '''
             table_conf = self._get_setting(TRANSFORM, setts, None)
             gconf = self._get_config([GLOBAL, TRANSFORM], optional=True)
@@ -190,10 +209,11 @@ class Builder(object):
             tconf = self._get_setting(RCA, setts, None)
             table = self._calc_rca(table, setts, tconf)
             table = table.reset_index()
-            table = self._do_growth(table, table_name, pk, var)
+            # TODO: fix growth
+            # table = self._do_growth(table, table_name, pk, var_map)
 
             print table.head(), "final table [head]"
-            self.save(table_name, table, var=var)
+            self.save(table_name, table, var_map=var_map)
 
         return df
 
@@ -208,20 +228,20 @@ class Builder(object):
             return rca_helper.calc_rca(table, depths=tmp, **gconf)
         return table
 
-    def _check_file(self, file_path):
-        output_path = self._get_config([GLOBAL, OUTPUT])
+    def _check_file(self, file_path, var_map):
+        output_path = self._output_str(var_map=var_map)
 
         gconf = self._get_config([GLOBAL])
         if FTP_PATHS in gconf or WEB_PATHS in gconf:
             print "Attempting file and (if needed) FTP check", output_path
             grab_if_needed(file_path, gconf)
 
-    def _check_hdf_cache(self, input_file, var):
-        output_path = self._get_config([GLOBAL, OUTPUT])
+    def _check_hdf_cache(self, input_file, var_map):
+        output_path = self._output_str(var_map=var_map)
 
         print "CHECK HDF"
         print input_file
-        print output_path
+        print output_path, "OUTPUT PATH"
         file_name = os.path.basename(input_file)
         target = os.path.join(output_path, file_name + ".h5")
 
@@ -234,13 +254,13 @@ class Builder(object):
         df = pd.read_hdf(target, HDF_CACHE)
         return (df, target)
 
-    def _to_df(self, input_file, var=None):
-        hdf_df, target = self._check_hdf_cache(input_file, var)
+    def _to_df(self, input_file, var_map=None):
+        hdf_df, target = self._check_hdf_cache(input_file, var_map)
         if hdf_df is not False:
             print "Reading from HDF file..."
             return hdf_df
 
-        self._check_file(input_file)
+        self._check_file(input_file, var_map)
         print "Opening file..."
         input_file = get_file(input_file)
 
@@ -254,43 +274,46 @@ class Builder(object):
         return df
 
 
-    def _do_growth(self, table, table_name, pk, var):
-        growth_setts = self._get_config([GLOBAL, SOURCE_SETTING, GROWTH], optional=True, default=None)
-        if not growth_setts:
-            print "NO growth in settings. Skiping growth calculations..."
-            return table
-        start = self._get_config([GLOBAL, SOURCE_SETTING, START])
+    # def _do_growth(self, table, table_name, pk, var, var_map):
+    #     growth_setts = self._get_config([GLOBAL, SOURCE_SETTING, GROWTH], optional=True, default=None)
+    #     if not growth_setts:
+    #         print "NO growth in settings. Skiping growth calculations..."
+    #         return table
+    #     start = self._get_config([GLOBAL, SOURCE_SETTING, START])
         
-        file_name = table_name + ".tsv.bz2"
-        for growth_sett in growth_setts:
-            if not (YEARS in growth_sett and COLUMNS in growth_sett):
-                raise InvalidSettingException("Need to specify years and columns for growth")
+    #     file_name = table_name + ".tsv.bz2"
+    #     for growth_sett in growth_setts:
+    #         if not (YEARS in growth_sett and COLUMNS in growth_sett):
+    #             raise InvalidSettingException("Need to specify years and columns for growth")
 
-            years_ago = growth_sett[YEARS]
-            growth_cols = growth_sett[COLUMNS]
-            delta_col = self._get_setting(DELTA, growth_setts, None)
+    #         years_ago = growth_sett[YEARS]
+    #         growth_cols = growth_sett[COLUMNS]
+    #         delta_col = self._get_setting(DELTA, growth_setts, None)
 
-            if growth_cols and var >= start + years_ago:
+    #         if growth_cols and var >= start + years_ago:
 
-                print "Do one year growth calculation..."
-                output_str = self._output_str(var - years_ago)
-                growth_path = os.path.abspath(os.path.join(output_str, file_name))
-                file_prev = get_file(growth_path)
-                tbl_prev = pd.read_csv(file_prev, sep="\t")
-                table = growth.do_growth(table, tbl_prev, pk, growth_cols, years_ago=years_ago, delta_col=delta_col)
+    #             print "Do one year growth calculation..."
+    #             output_str = self._output_str(var - years_ago)
+    #             growth_path = os.path.abspath(os.path.join(output_str, file_name))
+    #             file_prev = get_file(growth_path)
+    #             tbl_prev = pd.read_csv(file_prev, sep="\t")
+    #             table = growth.do_growth(table, tbl_prev, pk, growth_cols, years_ago=years_ago, delta_col=delta_col)
             
-        return table
+    #     return table
 
-    def _output_str(self, var=None):
+    def _output_str(self, var_map=None):
         output_path = self._get_config([GLOBAL, OUTPUT])
-        if var:
-            output_path = os.path.join(output_path, str(var))
+        if var_map:
+            print var_map, "VARMAP"
+            for var, val in var_map.items():
+                output_path = output_path.replace("<{}>".format(var), val)
+            # output_path = os.path.join(output_path, str(var))
         return output_path
 
-    def save(self, table_name, tbl, var=None):
+    def save(self, table_name, tbl, var_map=None):
         print "** Saving", table_name, "..."
         
-        output_path = self._output_str(var)
+        output_path = self._output_str(var_map)
 
         # -- check if output path exists, if not create it
         if not os.path.exists(output_path):

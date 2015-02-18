@@ -81,13 +81,16 @@ def process_operation(df, colname, settings, agg=None, pk=[]):
         df = df.reset_index()
         df = df.groupby(target_pk).agg(agg)
         df = df.unstack(target_index)
-        agg_map = {t[0]:u''.join(t) for t in df.columns}
+        agg_map = {u''.join(t):t[0] for t in df.columns}
         df.columns = [u''.join(t) for t in df.columns ]
         # update agg!
+        print agg_map
         for k,v in agg_map.items():
-            tmp = agg[k]
-            del agg[k]
-            agg[v] = tmp
+            tmp = agg[v]
+            agg[k] = tmp
+        for k,v in agg_map.items():
+            if v in agg:
+                del agg[v]
 
         df = df.reset_index()
 
