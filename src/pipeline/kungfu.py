@@ -4,6 +4,11 @@ import pandas as pd
 # import src.plugins
 from consts import *
 
+def str_to_func(pluginpath):
+    path,methodname = pluginpath.rsplit('.', 1)
+    module = import_module(path)
+    applyfunc = getattr(module, methodname)
+    return applyfunc
 
 def check_requirements(settings, df_cols):
     if REQUIRED in settings:
@@ -93,5 +98,7 @@ def process_operation(df, colname, settings, agg=None, pk=[]):
                 del agg[v]
 
         df = df.reset_index()
-
+    elif settings[TYPE] == FUNC:
+        func = str_to_func(settings[FUNC])
+        df[colname] = df[colname].map(func)
     return df

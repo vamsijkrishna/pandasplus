@@ -13,11 +13,11 @@ from src.pipeline._table_manipulation import add_column_lengths, add_summary_row
 
 from src.plugins import rca_helper
 from src.fetcher.fetch import grab_if_needed
-from src.plugins.helpers import get_file
 
 from src.pipeline import growth
+from src.pipeline.abstract import BaseBuilder
 
-class Builder(object):
+class Builder(BaseBuilder):
     def __init__(self, config):
         self.config = config
         self.db = DB()
@@ -25,7 +25,7 @@ class Builder(object):
         transformers = self._get_config([GLOBAL, "default_transformations"], optional=True, default={})
         self.converters = self._setup_transfomers(transformers)
         
-        self.tables = self._get_config(TABLES)
+        self.tables = self._get_config(TABLES, optional=True, default={})
         self.aggs = self._build_agg(self._get_config([GLOBAL, AGG], optional=True, default={}))
         self.coerce = self._get_config([GLOBAL, TYPE], optional=True, default={})
         for k in self.coerce:
@@ -35,19 +35,6 @@ class Builder(object):
         td_config = self._get_config([GLOBAL, "transformed_depths"], optional=True, default={})
         self.transformed_depths = self._setup_transfomers(td_config)
 
-    def _get_config(self, name, optional=False, default=None):
-        if type(name) == str:
-            name = [name]
-        mydata = self.config
-        for n in name:
-            if not n in mydata:
-                if not optional:
-                    raise InvalidSettingException("%s not in configuration!" % (name))
-                else:
-                    return default
-            mydata = mydata[n]
-        return mydata
-
     def _setup_transfomers(self, transformers):
         db_converters = {colname: self.db.make_dict(**settings)
                         for colname, settings in transformers.items() if settings[TYPE] == "DBLOOKUP"}
@@ -56,12 +43,7 @@ class Builder(object):
     def _build_agg(self, setts):
         return {k: getattr(pd.Series, v) for k,v in setts.items()}
 
-    def _get_setting(self, name, setts, default=None, optional=True):
-        if name in setts:
-            return setts[name]
-        if not optional:
-            raise InvalidSettingException("Couldn't find %s in %s" % (name, setts))
-        return default
+
 
     def _depth_combos(self, df, agg, pk, setts):
         addtl_rows = pd.DataFrame()
@@ -228,52 +210,6 @@ class Builder(object):
             return rca_helper.calc_rca(table, depths=tmp, **gconf)
         return table
 
-    def _check_file(self, file_path, var_map):
-        output_path = self._output_str(var_map=var_map)
-
-        gconf = self._get_config([GLOBAL])
-        if FTP_PATHS in gconf or WEB_PATHS in gconf:
-            print "Attempting file and (if needed) FTP check", output_path
-            grab_if_needed(file_path, gconf)
-
-    def _check_hdf_cache(self, input_file, var_map):
-        output_path = self._output_str(var_map=var_map)
-
-        print "CHECK HDF"
-        print input_file
-        print output_path, "OUTPUT PATH"
-        file_name = os.path.basename(input_file)
-        target = os.path.join(output_path, file_name + ".h5")
-
-        if not os.path.exists(output_path):
-            # -- make directory if it doesn't exist
-            os.makedirs(output_path)
-
-        if not os.path.exists(target):
-            return (False, target)
-        df = pd.read_hdf(target, HDF_CACHE)
-        return (df, target)
-
-    def _to_df(self, input_file, var_map=None):
-        hdf_df, target = self._check_hdf_cache(input_file, var_map)
-        if hdf_df is not False:
-            print "Reading from HDF file..."
-            return hdf_df
-
-        self._check_file(input_file, var_map)
-        print "Opening file..."
-        input_file = get_file(input_file)
-
-        delim = self._get_config([GLOBAL, SEPERATOR], optional=True, default=";")
-        dec = self._get_config([GLOBAL, DECIMAL], optional=True, default=",")
-        encoding = self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
-        df = pd.read_csv(input_file, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce)
-        print "Saving dataframe in HDF file..."
-        df.to_hdf(target, HDF_CACHE, append=False)
-
-        return df
-
-
     # def _do_growth(self, table, table_name, pk, var, var_map):
     #     growth_setts = self._get_config([GLOBAL, SOURCE_SETTING, GROWTH], optional=True, default=None)
     #     if not growth_setts:
@@ -300,31 +236,6 @@ class Builder(object):
     #             table = growth.do_growth(table, tbl_prev, pk, growth_cols, years_ago=years_ago, delta_col=delta_col)
             
     #     return table
-
-    def _output_str(self, var_map=None):
-        output_path = self._get_config([GLOBAL, OUTPUT])
-        if var_map:
-            print var_map, "VARMAP"
-            for var, val in var_map.items():
-                output_path = output_path.replace("<{}>".format(var), val)
-            # output_path = os.path.join(output_path, str(var))
-        return output_path
-
-    def save(self, table_name, tbl, var_map=None):
-        print "** Saving", table_name, "..."
-        
-        output_path = self._output_str(var_map)
-
-        # -- check if output path exists, if not create it
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
-
-        file_name = table_name + ".tsv.bz2"
-        new_file_path = os.path.abspath(os.path.join(output_path, file_name))
-        encoding = self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
-        tbl.to_csv(bz2.BZ2File(new_file_path, 'wb'), sep="\t", index=False, encoding=encoding)
-        print "** Save complete."
-        self._import_to_db(new_file_path) 
 
 
     def _import_to_db(self, file_path):
