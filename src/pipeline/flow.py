@@ -80,7 +80,11 @@ class Builder(BaseBuilder):
                 computed = [computed]
             for c in computed:
                 for k,v in c.items():
-                    df = process_operation(df, k, v, agg, pk)
+                    if type(v) == list:
+                        for i in v:
+                            df = process_operation(df, k, i, agg, pk)
+                    else:
+                        df = process_operation(df, k, v, agg, pk)
         return df
 
     def _compute_lengths(self, should_compute, table, pk, table_conf):

@@ -3,6 +3,8 @@ from importlib import import_module
 import pandas as pd
 # import src.plugins
 from consts import *
+import goslate
+from database import DB
 
 def str_to_func(pluginpath):
     path,methodname = pluginpath.rsplit('.', 1)
@@ -86,6 +88,7 @@ def process_operation(df, colname, settings, agg=None, pk=[]):
         df = df.reset_index()
         df = df.groupby(target_pk).agg(agg)
         df = df.unstack(target_index)
+
         agg_map = {u''.join(t):t[0] for t in df.columns}
         df.columns = [u''.join(t) for t in df.columns ]
         # update agg!
@@ -98,7 +101,19 @@ def process_operation(df, colname, settings, agg=None, pk=[]):
                 del agg[v]
 
         df = df.reset_index()
-    elif settings[TYPE] == FUNC:
+    elif settings[TYPE] == FUNC and colname in pk:
         func = str_to_func(settings[FUNC])
         df[colname] = df[colname].map(func)
+    elif settings[TYPE] == TRANSLATE:
+        gs = goslate.Goslate()
+        target = settings[TARGET]
+        func = lambda x: gs.translate(x, target)
+        df[colname] = df[colname].map(func)
+    elif settings[TYPE] == DBLOOKUP:
+        db = DB()
+        lookup_map = db.make_dict(**settings)
+        print lookup_map
+        df[colname] = df[colname].map(lookup_map)
+    elif settings[TYPE] == SLICE:
+        df[colname] = df[colname].astype(str).str.slice(0, settings[LENGTH])
     return df
