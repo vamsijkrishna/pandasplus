@@ -142,6 +142,11 @@ lookup[u'黑龙江省其它'] = '23XXXX'
 lookup[u'BEIJING'] = '110000'
 lookup[u'SHANDONGYANTAI'] = '370600'
 lookup[u'LIAOLINGYINKOU'] = '210800'
+
+# TODO FIX:
+lookup[u'重庆市石柱土家族苗族自治'] = '50XXXX'
+lookup[u'重庆市秀山土家族苗族自治'] = '50XXXX'
+lookup[u'重庆市黔江土家族苗族自治'] = '50XXXX'
 mylist = []
 
 special_zone = {}
