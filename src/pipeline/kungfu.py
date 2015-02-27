@@ -92,7 +92,7 @@ def process_operation(df, colname, settings, agg=None, pk=[]):
         agg_map = {u''.join(t):t[0] for t in df.columns}
         df.columns = [u''.join(t) for t in df.columns ]
         # update agg!
-        print agg_map
+        # print agg_map
         for k,v in agg_map.items():
             tmp = agg[v]
             agg[k] = tmp
@@ -109,11 +109,14 @@ def process_operation(df, colname, settings, agg=None, pk=[]):
         target = settings[TARGET]
         func = lambda x: gs.translate(x, target)
         df[colname] = df[colname].map(func)
-    elif settings[TYPE] == DBLOOKUP:
+    elif settings[TYPE] == DBLOOKUP and colname in pk:
         db = DB()
         lookup_map = db.make_dict(**settings)
-        print lookup_map
+        # print lookup_map
         df[colname] = df[colname].map(lookup_map)
-    elif settings[TYPE] == SLICE:
+    elif settings[TYPE] == SLICE and colname in pk:
         df[colname] = df[colname].astype(str).str.slice(0, settings[LENGTH])
+    elif settings[TYPE] == PREPEND and colname in pk:
+        df.loc[df[colname].str.len() == 0, colname] = 'XXXXXX'
+        df[colname] = settings[VALUE] + df[colname].astype(unicode)
     return df

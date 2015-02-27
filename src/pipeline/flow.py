@@ -99,8 +99,10 @@ class Builder(BaseBuilder):
 
     def run(self):
         raw_input_file = self._get_config([GLOBAL, SOURCE])
+        raw_input_file = os.path.expandvars(raw_input_file)
         source_setts = self._get_config([GLOBAL, SOURCE_SETTING], optional=True)
         source_vars = self._get_config([GLOBAL, SOURCE_VARS], optional=True)
+        concat_mode = self._get_config([GLOBAL, CONCAT_MODE], optional=True, default=False)
 
         if source_vars:
             s_vars = re.findall("<(\w+)>", raw_input_file)
@@ -111,7 +113,8 @@ class Builder(BaseBuilder):
 
             labels = ds.keys()
             combos = itertools.product(*ds.values())
-            print labels
+            master_df = pd.DataFrame()
+            master_var_map = {}
 
             for combo in combos:
                 var_map = {}
@@ -123,12 +126,30 @@ class Builder(BaseBuilder):
                     tmp_file = tmp_file.replace( "<{}>".format(var) , val )
                     var_map[var] = val
 
+                    if concat_mode:
+                        if not var in master_var_map:
+                            master_var_map[var] = []
+                        if not val in master_var_map[var]:
+                            master_var_map[var].append(val)
+
+
                 print tmp_file, combo
+
                 df = self._to_df(tmp_file, var_map=var_map)
                 for idx, label in enumerate(labels):
                     df[label] = combo[idx]
-                print df.head()
-                self._run_helper(df, var_map=var_map)
+
+                if not concat_mode:
+                    self._run_helper(df, var_map=var_map)
+                else:
+                    print "Joining dataframes..."
+                    master_df = pd.concat([master_df, df])
+
+            if concat_mode:
+                for key in master_var_map:
+                    master_var_map[key] = u'_'.join(master_var_map[key])
+                print "Running in CONCAT_MODE..."
+                self._run_helper(master_df, var_map=master_var_map)
 
         elif not source_setts:
             df = self._to_df(raw_input_file)

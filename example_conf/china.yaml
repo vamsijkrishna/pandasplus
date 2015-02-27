@@ -1,0 +1,67 @@
+global:
+    encoding: "utf-16"
+    seperator: ","
+    name: china
+    source : "$CHINA_FOLDER/<year>-<month>.txt"
+    source_vars:
+        year:
+            start: 2001
+            end: 2001
+        month:
+            start: 1
+            end: 12
+            zfill: 2
+    concat: NO
+
+    # source_regex : "/Users/jspeiser/Downloads/china/(?P<year>\\d+)-(?P<month>\\d+).txt"
+    output : "/tmp/china/<year>/<month>"
+
+    # type must be the original name of the column (before rename)
+    type:
+        quantity : "int"
+        amount: "int"
+
+    agg:
+        "quantity": "sum"
+        "amount": "sum"
+
+    transform:
+        "import or export":
+            type: "unstack"
+            target: "import or export"
+        "province and city":
+            -
+                type: "func"
+                func: "plugins.attribute_map.find_zip"
+            -
+                type: "prepend"
+                value: "CN"
+        "HS8":
+            - 
+                type: "slice"
+                length: 4
+            - 
+                type: "DBLOOKUP"
+                table: "attrs_hs"
+                key: "substr(id, 3)"
+                value: "id"
+                where: "char_length(id) = 6"
+
+
+tables:
+    # ymgwp:
+    #     pk: ["year", "month", "province and city", "export destination country", "HS8"]
+    ymgp:
+        pk: ["year", "month", "HS8", "province and city"]
+        depths: { "year" : [YES], "month": [YES], "HS8": [YES], "province and city" : [YES]  }
+
+        # rca:
+        #     index: "province and city"
+        #     column: "HS8"
+        #     # where: {"Month" : 0}
+        #     index_depths: [8]
+        #     column_depth: 6
+        #     values: [u"amount出口", u"amount进口"]
+    # ymp:
+        # pk: ["year", "month", "HS8"]
+
