@@ -39,6 +39,7 @@ class BaseBuilder(object):
             for var, val in var_map.items():
                 output_path = output_path.replace("<{}>".format(var), val)
             # output_path = os.path.join(output_path, str(var))
+        output_path = os.path.expandvars(output_path)
         return output_path
 
     def _check_file(self, file_path, var_map):
