@@ -97,7 +97,7 @@ class BaseBuilder(object):
 
         file_name = table_name + ".tsv.bz2"
         new_file_path = os.path.abspath(os.path.join(output_path, file_name))
-        encoding = self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
+        encoding = "utf-8-sig" #self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
         tbl.to_csv(bz2.BZ2File(new_file_path, 'wb'), sep="\t", index=False, encoding=encoding)
         print "** Save complete."
         self._import_to_db(new_file_path) 
