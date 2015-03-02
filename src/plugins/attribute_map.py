@@ -6,7 +6,7 @@ import re
 import os
 from country_data import country_map
 
-path_file = os.path.expandvars("$CHINA_FOLDER/2001-01.txt")
+path_file = os.path.expandvars("$CHINA_FOLDER/2001/2001-01.txt")
 path_attr = os.path.expandvars("$CHINA_FOLDER/chinese_attrs.txt")
 
 df = pd.read_csv(path_file, encoding="utf-16")
@@ -144,7 +144,7 @@ lookup[u'SHANDONGYANTAI'] = '370600'
 lookup[u'LIAOLINGYINKOU'] = '210800'
 
 # TODO FIX:
-lookup[u'重庆市石柱土家族苗族自治'] = '50XXXX'
+lookup[u'重庆市石柱土家族苗族自治'] = '500240'
 lookup[u'重庆市秀山土家族苗族自治'] = '50XXXX'
 lookup[u'重庆市黔江土家族苗族自治'] = '50XXXX'
 mylist = []

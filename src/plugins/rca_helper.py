@@ -4,7 +4,6 @@ import os, sys
 
 def calc_rca(df, index=None, column=None, values=None, where={}, depths=[]):
     print "RCA Calculation **********************"
-
     # -- compute RCA for the deepest nesting level
     df = df.reset_index()
 
@@ -33,10 +32,10 @@ def calc_rca(df, index=None, column=None, values=None, where={}, depths=[]):
             print rca_df.head(), "RCA_DF"
 
             rca_df = rca_df.reset_index()
+            rca_df = rca_df.rename(columns={0: value + u"_rca"})
             all_rcas = pd.concat([all_rcas, rca_df])
 
     df = pd.merge(df, all_rcas, how='left', left_on=rpk, right_on=rpk)
-    df = df.rename(columns={0: value+"_rca"})
 
     return df
 

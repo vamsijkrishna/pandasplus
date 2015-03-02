@@ -2,16 +2,16 @@ global:
     encoding: "utf-16"
     seperator: ","
     name: china
-    source : "$CHINA_FOLDER/<year>-<month>.txt"
+    source : "$CHINA_FOLDER/<year>/small-<month>.txt"
     source_vars:
         year:
             start: 2001
             end: 2001
         month:
-            start: 10
-            end: 12
+            start: 1
+            end: 1
             zfill: 2
-    concat: NO
+    concat: YES
 
     output : "/tmp/china/<year>/<month>"
 
@@ -48,15 +48,12 @@ global:
 
 tables:
     ymgp:
-        pk: ["year", "month", "province and city", "HS8"]
-        depths: { "year" : [YES], "month": [YES], "HS8": [2, YES], "province and city" : [2, 4, 5 ,8]  }
-        # rca:
-        #     index: "province and city"
-        #     column: "HS8"
-        #     # where: {"Month" : 0}
-        #     index_depths: [8]
-        #     column_depth: 6
-        #     values: [u"amount出口", u"amount进口"]
+        pk: ["year", "province and city", "HS8"]
+        depths: { "HS8": [YES], "province and city" : [YES]  }
+        rca:
+            index: "province and city"
+            column: "HS8"
+            values: [amount出口, amount进口]
     # ymp:
         # pk: ["year", "month", "HS8"]
 
