@@ -18,6 +18,8 @@ def calc_rca(df, index=None, column=None, values=None, where={}, depths=[]):
         conds = [ df[colname] == value for colname,value in where.items() ]
         conds += rca_pk
 
+        # TODO: fix bug with multiple values
+        # rca_values = pd.DataFrame()
         for value in values:
 
             final_cond = reduce(lambda x,y : x & y, conds)

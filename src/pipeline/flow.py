@@ -62,7 +62,9 @@ class Builder(BaseBuilder):
         for depths in itertools.product(*my_nesting):    
             my_pk = []
             for col_name, l in zip(my_nesting_cols, depths):
-                if type(l) in [str, unicode]:
+                if l == "identity":
+                    my_pk.append(df[col_name])
+                elif type(l) in [str, unicode]:
                     transformation = self.transformed_depths[l]
                     my_pk.append( df[col_name].map(transformation) )
                 elif l is True:
@@ -282,7 +284,9 @@ class Builder(BaseBuilder):
         for depths in itertools.product(*my_nesting):
             my_pk = []
             for col_name, l in zip(my_nesting_cols, depths):
-                if type(l) in [str, unicode]:
+                if l == "identity":
+                    my_pk.append(df[col_name])
+                elif type(l) in [str, unicode]:
                     transformation = self.transformed_depths[l]
                     tlen = df[col_name].map(transformation).str.len().max()
                     my_pk.append(df[col_name].str.len() == tlen)

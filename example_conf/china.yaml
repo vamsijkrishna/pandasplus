@@ -9,11 +9,11 @@ global:
             end: 2001
         month:
             start: 1
-            end: 1
+            end: 2
             zfill: 2
     concat: YES
 
-    output : "/tmp/china/<year>/<month>"
+    output : "$CHINA_FOLDER/output/<year>/<month>"
 
     type:
         quantity : "int"
@@ -48,12 +48,14 @@ global:
 
 tables:
     ymgp:
+        pk: ["year", "month", "province and city", "HS8"]
+        depths: { "year": ["identity"], "month":["identity"], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
+
+    ygp:
         pk: ["year", "province and city", "HS8"]
-        depths: { "HS8": [YES], "province and city" : [YES]  }
+        depths: { "year": ["identity"], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
         rca:
-            index: "province and city"
+            index: ["year", "province and city"]
             column: "HS8"
-            values: [amount出口, amount进口]
-    # ymp:
-        # pk: ["year", "month", "HS8"]
+            values: [amount出口]
 
