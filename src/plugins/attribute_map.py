@@ -6,7 +6,7 @@ import re
 import os
 from country_data import country_map
 
-path_file = os.path.expandvars("$CHINA_FOLDER/2001/2001-01.txt")
+path_file = os.path.expandvars("$CHINA_FOLDER/2001-01.txt")
 path_attr = os.path.expandvars("$CHINA_FOLDER/chinese_attrs.txt")
 
 df = pd.read_csv(path_file, encoding="utf-16")
@@ -20,6 +20,7 @@ def only_nonascii(text):
 provinces = attrs.values
 
 lookup = {}
+lookup[u"未知"] = "XXXXXX"
 lookup[u"宁夏回族石嘴山"] = "640200"
 lookup[u"宁夏回族银南"] = "640103"
 lookup[u"宁夏回族银川"] = "640100"
@@ -147,6 +148,11 @@ lookup[u'LIAOLINGYINKOU'] = '210800'
 lookup[u'重庆市石柱土家族苗族自治'] = '500240'
 lookup[u'重庆市秀山土家族苗族自治'] = '50XXXX'
 lookup[u'重庆市黔江土家族苗族自治'] = '50XXXX'
+lookup[u"重庆市彭水苗族土家族自治"] = "500243"
+lookup[u"安徽毫州"] = "341600"
+lookup[u"广西地区"] = "45XXXX"
+lookup[u"广西港市"] = "45XXXX"
+
 mylist = []
 
 special_zone = {}
