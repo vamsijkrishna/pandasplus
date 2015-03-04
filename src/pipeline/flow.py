@@ -17,6 +17,8 @@ from src.fetcher.fetch import grab_if_needed
 from src.pipeline import growth
 from src.pipeline.abstract import BaseBuilder
 
+from src.plugins.converters import safe_float
+
 class Builder(BaseBuilder):
     def __init__(self, config):
         self.config = config
