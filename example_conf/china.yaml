@@ -1,27 +1,26 @@
 global:
-    encoding: "utf-16"
+    encoding: "utf-8"
     seperator: ","
     name: china
-    source : "$CHINA_FOLDER/<year>/small-<month>.txt"
+    source : "$CHINA_FOLDER/<year>/<year>-<month>.txt"
     source_vars:
         year:
-            start: 2001
-            end: 2001
+            start: 2005
+            end: 2005
         month:
             start: 1
-            end: 2
+            end: 12
             zfill: 2
     concat: YES
 
     output : "$CHINA_FOLDER/output/<year>/<month>"
 
     type:
-        quantity : "int"
-        amount: "int"
+        "$ amount": "safe_float"
 
     agg:
         "quantity": "sum"
-        "amount": "sum"
+        "$ amount": "sum"
 
     transform:
         "import or export":
@@ -57,5 +56,5 @@ tables:
         rca:
             index: ["year", "province and city"]
             column: "HS8"
-            values: [amount出口]
+            values: [$ amount出口]
 
