@@ -188,34 +188,23 @@ for x in provinces:
         else:
             city = city[:2]
         province = province[:2]
-
     elif province[:3] in [u'重庆市', u'上海市', u'北京市']:
-        # print "original", orig_province, orig_city
         province = province[:3]
-        # if u"南市" in city:
-            # print province,city
-            # sys.exit()
-        # print "test", (province + city )
-        lookup[(province + city).strip()] = x[-1]
     elif province[:3] in [u'吉林省', u'山西省', u'云南省']:
         province = province[:3]
         city = city[:2]
 
-        # sys.exit()
-    # elif province[:3] in [u'河北省']:
-        # print "province", orig_province, "city=",city,
-        # province = province[:3]
-        # print "pid", (province + city)
-        # print lookup[(province +city).strip()]
-        # sys.exit()
-    pid = province + city
-    lookup[pid] = x[-1]
+    if len(str(x[5])) != 6 or "XX" in str(x[5]):
+        print  x
+        raise Exception("Invalid geo code")
+    pid = (province + city).strip()
+    lookup[pid] = x[5]
     # if u"北京" in city:
         # print city[:2], "here", 
         # sys.exit()
     # print "SPECIAL DICTIONARY"
     # print city[:2], x[-1]
-    special_zone[city[:2].strip()] = x[-1]
+    special_zone[city[:2].strip()] = x[5]
     #print u"{} = {}".format(pid, x[-1])
 
 #print new_dict
@@ -228,7 +217,7 @@ special = set([])
 def find_zip(location):
     # if not location:
     if len(unicode(location))  == 0:
-        raise Exception("foo")
+        return "xxxxxx"
     # raise Exception("WHJO?", location)
     if type(location) != float:
         location = location.strip()
@@ -239,9 +228,6 @@ def find_zip(location):
     elif location in lookup:
         # print lookup[location]
         return lookup[location]
-    # elif location == u"新疆维吾尔哈密":
-        # -- What does this one mean?
-        # print lookup[location]
     elif location[:2] in [u"西藏", u"广西"]:
         province = location[:2]
         if location == u"宁夏回族其它":
