@@ -20,17 +20,17 @@ def only_nonascii(text):
 provinces = attrs.values
 
 lookup = {}
-lookup[u"未知"] = "XXXXXX"
+lookup[u"未知"] = "xxxxxx"
 lookup[u"宁夏回族石嘴山"] = "640200"
 lookup[u"宁夏回族银南"] = "640103"
 lookup[u"宁夏回族银川"] = "640100"
-lookup[u"宁夏回族其它"] = "640XXX"
+lookup[u"宁夏回族其它"] = "640xxx"
 lookup[u"西藏自治区日喀则"] = "542300"
 lookup[u"宁夏回族固原"]= "642200"
 # special prov
 lookup[u"新疆维吾尔哈密"] = "652200"
 lookup[u'新疆维吾尔和田'] = "653200"
-lookup[u'新疆维吾尔其它'] = "65XXXX"
+lookup[u'新疆维吾尔其它'] = "65xxxx"
 lookup[u'新疆维吾尔石河子'] = "659001"
 lookup[u'新疆维吾尔喀什'] = "653100" #very violent
 lookup[u'新疆维吾尔巴音'] = "652800"
@@ -45,7 +45,7 @@ lookup[u'新疆维吾尔克孜'] = "653000"
 lookup[u'新疆维吾尔克拉玛依'] = "650200"
 lookup[u'新疆维吾尔阿克苏'] = "652900"
 # special prov
-lookup[u'内蒙古自治区其它'] = "15XXX"
+lookup[u'内蒙古自治区其它'] = "15xxxx"
 lookup[u'内蒙古自治区呼和浩特'] = "150100"
 lookup[u'内蒙古自治区巴彦淖尔盟'] = "152800"
 lookup[u'内蒙古自治区哲里木盟'] = "152300"
@@ -63,9 +63,9 @@ lookup[u'内蒙古自治区赤峰'] = "150400"
 lookup[u'厦门特区'] = "350200"
 lookup[u'深圳特区'] = "440300"
 lookup[u'上海市南市'] = '310100'
-lookup[u'上海市其它'] = '31XXXX'
+lookup[u'上海市其它'] = '31xxxx'
 lookup[u'上海市浦东'] = '310115'
-lookup[u'北京市其它'] = '11XXXX'
+lookup[u'北京市其它'] = '11xxxx'
 lookup[u'北京市经济技术开发区'] = '110115'
 lookup[u'北京市通县']= '110112'
 
@@ -78,9 +78,9 @@ lookup[u'天津市南郊'] = '120100'
 lookup[u'天津市北郊'] = '120100'
 lookup[u'天津市南开'] = '120104'
 lookup[u'天津港保税区'] = '120109'
-lookup[u'天津市其它'] = '12XXXX'
+lookup[u'天津市其它'] = '12xxxx'
 lookup[u'河北省石家庄'] = '130100'
-lookup[u'河北省其它'] = '13XXXX'
+lookup[u'河北省其它'] = '13xxxx'
 lookup[u'黑龙江省大庆'] = '230600'
 lookup[u'上海浦东新区']= '310115'
 
@@ -117,12 +117,12 @@ lookup[u'上海外高桥保税区'] = '310115'
 lookup[u'厦门象屿保税区'] ='350200'
 lookup[u'江苏张家港保税区'] = '320582'
 lookup[u'山西省雁北'] ='140600'
-lookup[u'安徽省其它']= '34XXXX'
+lookup[u'安徽省其它']= '34xxxx'
 lookup[u'青海省海东']='632100'
-lookup[u'海南其它经济特区']='46XXXX'
+lookup[u'海南其它经济特区']='46xxxx'
 lookup[u'天津市蓟县'] = '120225'
 lookup[u'天津市蓟县'] = '120225'
-lookup[u'江苏省其它'] = '32XXXX'
+lookup[u'江苏省其它'] = '32xxxx'
 lookup[u'吉林省公主岭'] = '220381'
 lookup[u'吉林省浑江'] = '220600'
 lookup[u'汕头特区汕头'] = '440500'
@@ -138,20 +138,20 @@ lookup[u'内蒙古自治区锡林郭勒盟']= '152500'
 lookup[u'重庆市壁山'] ='500383'
 lookup[u'重庆市永川市'] = '500383'
 lookup[u'重庆市酉阳土家族苗族自治'] = '500242'
-lookup[u'四川省其它'] = '51XXXX'
-lookup[u'黑龙江省其它'] = '23XXXX'
+lookup[u'四川省其它'] = '51xxxx'
+lookup[u'黑龙江省其它'] = '23xxxx'
 lookup[u'BEIJING'] = '110000'
 lookup[u'SHANDONGYANTAI'] = '370600'
 lookup[u'LIAOLINGYINKOU'] = '210800'
 
 # TODO FIX:
 lookup[u'重庆市石柱土家族苗族自治'] = '500240'
-lookup[u'重庆市秀山土家族苗族自治'] = '50XXXX'
-lookup[u'重庆市黔江土家族苗族自治'] = '50XXXX'
 lookup[u"重庆市彭水苗族土家族自治"] = "500243"
-lookup[u"安徽毫州"] = "341600"
-lookup[u"广西地区"] = "45XXXX"
-lookup[u"广西港市"] = "45XXXX"
+lookup[u"安徽毫州"] = "341281"
+lookup[u"广西地区"] = "45xxxx"
+lookup[u"广西港市"] = "450602"
+lookup[u'重庆市秀山土家族苗族自治'] = '500241'
+lookup[u'重庆市黔江土家族苗族自治'] = '500239'
 
 mylist = []
 
@@ -232,9 +232,10 @@ def find_zip(location):
     # raise Exception("WHJO?", location)
     if type(location) != float:
         location = location.strip()
+    
     if type(location) == float:
         # -- No Location Information
-        return "UNKNOWN"
+        return "xxxxxx"
     elif location in lookup:
         # print lookup[location]
         return lookup[location]
@@ -249,7 +250,7 @@ def find_zip(location):
             city = location[-2:]
         if city == u'其它':
             base_map = {u"西藏":"54", u"广西":"45"}
-            return base_map[province] + u"XXXX"
+            return base_map[province] + u"xxxx"
         pid = province + city
         return lookup[pid]
     elif location[:3] in [u'重庆市', u'上海市', u'北京市']:
@@ -281,7 +282,7 @@ def find_zip(location):
                 return special_zone[location[4:6].strip()]
     if len(location) >= 5:
         kays = {}
-        val = None
+        val = "xxxxxx"
         for k in special_zone.keys():
             if location[3:5].strip() in k:
                 # print location
@@ -299,8 +300,14 @@ def find_zip(location):
     raise Exception("BAD location:", location)
 
 def find_wld(name_cn):
-    print name_cn
-    return country_map[name_cn]
+    # print name_cn
+    try:
+        return country_map[name_cn]
+    except:
+        print "BIG FAIL!!!!!"
+        print name_cn
+        print
+        return "xxxxx"
 
 # for idx,x in enumerate(data):
     # quantity,i,hs,amount,location,exportdest,inbet,imp = x
