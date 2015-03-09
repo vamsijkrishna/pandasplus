@@ -152,6 +152,7 @@ lookup[u"广西地区"] = "45xxxx"
 lookup[u"广西港市"] = "450602"
 lookup[u'重庆市秀山土家族苗族自治'] = '500241'
 lookup[u'重庆市黔江土家族苗族自治'] = '500239'
+lookup[u'NULL'] = 'xxxxxx'
 
 mylist = []
 
