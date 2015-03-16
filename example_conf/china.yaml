@@ -5,8 +5,8 @@ global:
     source : "$CHINA_FOLDER/<year>/<year>-<month>.txt"
     source_vars:
         year:
-            start: 2005
-            end: 2005
+            start: 2002
+            end: 2002
         month:
             start: 1
             end: 12
@@ -17,6 +17,8 @@ global:
 
     type:
         "$ amount": "safe_float"
+        "HS8": "str"
+        "province and city": "unicode"
 
     agg:
         "quantity": "sum"
@@ -33,6 +35,10 @@ global:
             -
                 type: "prepend"
                 value: "CN"
+        "export destination country":
+            -
+                type: "func"
+                func: "plugins.attribute_map.find_wld"
         "HS8":
             - 
                 type: "slice"
@@ -46,15 +52,20 @@ global:
 
 
 tables:
-    ymgp:
-        pk: ["year", "month", "province and city", "HS8"]
-        depths: { "year": ["identity"], "month":["identity"], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
+    ygpw:
+        pk: ["year", "province and city", "HS8", "export destination country"]
+        depths: { "year": ["identity"], "export destination country": [2, YES], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
 
-    ygp:
-        pk: ["year", "province and city", "HS8"]
-        depths: { "year": ["identity"], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
-        rca:
-            index: ["year", "province and city"]
-            column: "HS8"
-            values: [$ amount出口]
+    # ymgp:
+        # pk: ["year", "month", "province and city", "HS8"]
+        # depths: { "year": ["identity"], "month":["identity"], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
+
+    # ygp:
+        # pk: ["year", "province and city", "HS8"]
+        # depths: { "year": ["identity"], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
+        # rca:
+            # index: ["year", "province and city"]
+            # column: "HS8"
+            # values: [$ amount出口]
+
 

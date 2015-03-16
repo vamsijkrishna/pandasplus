@@ -18,6 +18,9 @@ from src.pipeline import growth
 from src.pipeline.abstract import BaseBuilder
 
 from src.plugins.converters import safe_float
+from src.plugins.helpers import get_file
+
+import gc
 
 class Builder(BaseBuilder):
     def __init__(self, config):
@@ -148,6 +151,7 @@ class Builder(BaseBuilder):
                 else:
                     print "Joining dataframes..."
                     master_df = pd.concat([master_df, df])
+                print "GARBAGE COLLECTION:", gc.collect()
 
             if concat_mode:
                 for key in master_var_map:
@@ -189,7 +193,8 @@ class Builder(BaseBuilder):
         for table_name, setts in self.tables.items():
             mydf = df.copy()
             print "Doing table:", table_name
-            print mydf.columns
+            mydf = self._apply_table_renames(mydf, setts)
+
             pk = setts["pk"]
             agg = self._get_setting(AGG, setts)
             agg = self.aggs if not agg else self._build_agg(agg)
@@ -224,9 +229,17 @@ class Builder(BaseBuilder):
             # table = self._do_growth(table, table_name, pk, var_map)
 
             print table.head(), "final table [head]"
+            to_drop = self._get_setting(DROP, setts, optional=True, default=[])
+            table.drop(to_drop, inplace=True, axis=1)
             self.save(table_name, table, var_map=var_map)
+            print "GARBAGE COLLECTION2:", gc.collect()
 
         return df
+
+    def _apply_table_renames(self, df, table_setts):
+        rename_map = self._get_setting(RENAME, table_setts, optional=True, default={})
+        print "rename", rename_map
+        return df.rename(columns=rename_map)
 
     def _apply_renames(self, df):
         rename_map = self._get_config([GLOBAL, RENAME], optional=True, default={})
@@ -239,33 +252,35 @@ class Builder(BaseBuilder):
             return rca_helper.calc_rca(table, depths=tmp, **gconf)
         return table
 
-    # def _do_growth(self, table, table_name, pk, var, var_map):
-    #     growth_setts = self._get_config([GLOBAL, SOURCE_SETTING, GROWTH], optional=True, default=None)
-    #     if not growth_setts:
-    #         print "NO growth in settings. Skiping growth calculations..."
-    #         return table
-    #     start = self._get_config([GLOBAL, SOURCE_SETTING, START])
+    def _do_growth(self, table, table_name, pk, var_map):
+        growth_setts = self._get_config([GLOBAL, GROWTH], optional=True, default=None)
+        if not growth_setts:
+            print "NO growth in settings. Skiping growth calculations..."
+            return table
         
-    #     file_name = table_name + ".tsv.bz2"
-    #     for growth_sett in growth_setts:
-    #         if not (YEARS in growth_sett and COLUMNS in growth_sett):
-    #             raise InvalidSettingException("Need to specify years and columns for growth")
+        time_col = growth_setts[TIME_COLUMN]
+        deltas = growth_setts[DELTA]
+        growth_cols = growth_setts[COLUMNS]
 
-    #         years_ago = growth_sett[YEARS]
-    #         growth_cols = growth_sett[COLUMNS]
-    #         delta_col = self._get_setting(DELTA, growth_setts, None)
+        start = self._get_config([GLOBAL, SOURCE_VARS, time_col, START])
 
-    #         if growth_cols and var >= start + years_ago:
+        print "GrowthCOL=", growth_cols, "time_col=", time_col, "start=", start
+        for d in deltas:
+            var = int(var_map[time_col])
+            if var >= start + d:
+                print "Do one year growth calculation...", var, start, d
+                growth_path = self.get_filepath(table_name, {time_col: unicode(var - d) })
+                file_prev = get_file(growth_path)
+                tbl_prev = pd.read_csv(file_prev, sep="\t", encoding="utf-8-sig") # TODO: encoding!
+                table = growth.do_growth(table, tbl_prev, pk, growth_cols, years_ago=d, delta_col=time_col)
 
-    #             print "Do one year growth calculation..."
-    #             output_str = self._output_str(var - years_ago)
-    #             growth_path = os.path.abspath(os.path.join(output_str, file_name))
-    #             file_prev = get_file(growth_path)
-    #             tbl_prev = pd.read_csv(file_prev, sep="\t")
-    #             table = growth.do_growth(table, tbl_prev, pk, growth_cols, years_ago=years_ago, delta_col=delta_col)
-            
-    #     return table
+        return table
 
+    def get_filepath(self, table_name, var_map):
+        output_path = self._output_str(var_map)
+        file_name = table_name + ".tsv.bz2"
+        new_file_path = os.path.abspath(os.path.join(output_path, file_name))
+        return new_file_path
 
     def _import_to_db(self, file_path):
         should_import = self._get_config([GLOBAL, DB_IMPORT], optional=True, default=False)

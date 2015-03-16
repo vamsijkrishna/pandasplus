@@ -62,6 +62,8 @@ TRANSLATE='translate'
 DBLOOKUP='DBLOOKUP'
 LENGTH='length'
 PREPEND='prepend'
+COLUMN='column'
+TIME_COLUMN='time_column'
 
 ENV_FTP_HOST='PP_FTP_HOST'
 ENV_FTP_USER='PP_FTP_USER'

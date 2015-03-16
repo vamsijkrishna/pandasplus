@@ -1,0 +1,176 @@
+global:
+    seperator: ";"
+    name: sc
+    source : "/Users/jspeiser/code/pandasplus/data/sc/School_census_<year>.csv"
+    source_vars:
+        year:
+            start: 2008
+            end: 2012
+    # growth:
+        # start: 2007
+        # columns: ["enrolled"]
+        # delta: [1,5]
+        # time_column: year
+    output : "/Users/jspeiser/sc_output/<year>"
+
+    post_agg_add_pklengths: 1
+    # ftp_paths: {
+        # "data/sc": "2014_03_10_Education/School Census/"
+    # }
+
+    # type must be the original name of the column (before rename)
+    type:
+        Course_ID : "str"
+        School_ID : "str"
+        Municipality: "str"
+        Location : "int"
+        Color : "int"
+        Adm_Dependency: "int"
+
+    default_transformations:
+        bra_id:
+            type: "DBLOOKUP"
+            table: "attrs_bra"
+            key : "id_ibge"
+            value : "id"
+
+    transformed_depths:
+        planning_region:
+            type: "DBLOOKUP"
+            table: "attrs_bra_pr"
+            key: "bra_id"
+            value: "pr_id"
+
+    agg:
+        enrolled: "count"
+        classes: "nunique"
+        age: "mean"
+
+    transform:
+        course_sc_id:
+            -
+                type: "conditional_map"
+                target: "Education_Level_New"
+                func: "lambda x: 'xx' + str(x).zfill(3)"
+                condition: "df.course_sc_id.str.len() == 0"
+            -
+                type: "zfill"
+                size: 5
+
+        distorted_age_raw:
+            type: "map"
+            target: "course_sc_id"
+            map: {
+                    "xx002": 8,
+                    "xx003": 9,
+                    "xx004" : 10,
+                    "xx005" : 11,
+                    "xx006" : 12,
+                    "xx007" : 13,
+                    "xx008" : 14,
+                    "xx009" : 15,
+                    "xx010" : 16,
+                    "xx011" : 17,
+                    "xx012" : 18,
+                    "xx013" : 19,
+                    "xx014" : 20,
+                    "xx016" : 17,
+                    "xx017" : 18,
+                    "xx018" : 19,
+                    "xx019" : 20
+            }
+
+        distorted_age: 
+            type: "conditional_map"
+            value: 1
+            condition: "df.age >= df.distorted_age_raw"
+            required: ["age", "distorted_age_raw"]
+
+
+    post_agg_transform:
+        distortion_rate:
+            type: "mathop"
+            func: "df.distorted_age / df.enrolled"
+            required: "distorted_age"
+
+    rename:
+        Year: "zzz_year"
+        Enroll_ID: "enrolled"
+        Studant_ID: "students"
+        Municipality: "bra_id"
+        Age: "age"
+        Course_ID: "course_sc_id"
+        Class_ID: "classes"
+        School_ID: "school_id"
+
+
+        # rca:
+            # index: "bra_id"
+            # column: School_ID
+            # values: ["enrolled"]
+
+tables:
+    yc:
+        depths: {"year" : [True], "course_sc_id": [2, 5]}
+        pk: ["year", "course_sc_id"]
+        agg:
+            enrolled: "count"
+            classes: "nunique"
+            age: "mean"
+            distorted_age: "sum"
+        drop: [distorted_age]
+    ys:
+        depths: {"year" : [True], "school_id": [True]}
+        pk: ["year", "school_id"]
+        agg:
+            enrolled: "count"
+            classes: "nunique"
+            age: "mean"
+    yb:
+        rename:
+            school_id: "num_schools"
+        depths: {"year" : [True], "bra_id": [1, 3, 5, 7, "planning_region", 9]}
+        pk: ["year", "bra_id"]
+        agg:
+            num_schools: "nunique"
+            classes: "nunique"
+            age: "mean"
+            enrolled: "count"
+
+    ybc:
+        depths: {"year" : [True], "bra_id": [1, 3, 5, 7, "planning_region", 9], "course_sc_id": [2, 5]}
+        pk: ["year", "bra_id", "course_sc_id"]
+        agg:
+            enrolled: "count"
+            classes: "nunique"
+            age: "mean"
+            distorted_age: "sum"
+        drop: [distorted_age]
+
+    ybs:
+        depths: {"year" : [True], "bra_id": [1, 3, 5, 7, "planning_region", 9], "school_id": [True]}
+        pk: ["year", "bra_id", "school_id"]
+        agg:
+            classes: "nunique"
+            age: "mean"
+            enrolled: "count"
+
+    ybsc:
+        depths: {"year" : [True], "bra_id": [1, 3, 5, 7, "planning_region", 9], "school_id": [True], "course_sc_id": [2, 5]}
+        pk: ["year", "bra_id", "school_id", "course_sc_id"]
+        agg:
+            enrolled: "count"
+            classes: "nunique"
+            age: "mean"
+            distorted_age: "sum"
+        drop: [distorted_age]
+
+    ysc:
+        depths: {"year" : [True], "school_id": [True], "course_sc_id": [2, 5]}
+        pk: ["year", "school_id", "course_sc_id"]
+        agg:
+            enrolled: "count"
+            classes: "nunique"
+            age: "mean"
+            distorted_age: "sum"
+        drop: [distorted_age]

@@ -67,7 +67,7 @@ class BaseBuilder(object):
         df = pd.read_hdf(target, HDF_CACHE)
         return (df, target)
 
-    def _to_df(self, input_file, use_cache=True, var_map=None):
+    def _to_df(self, input_file, use_cache=True, var_map=None, save_to_cache=True):
         hdf_df, target = self._check_hdf_cache(input_file, var_map)
         if hdf_df is not False and use_cache:
             print "Reading from HDF file..."
@@ -81,7 +81,7 @@ class BaseBuilder(object):
         dec = self._get_config([GLOBAL, DECIMAL], optional=True, default=",")
         encoding = self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
         df = pd.read_csv(input_file, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce)
-        if use_cache:
+        if use_cache and save_to_cache:
             print "Saving dataframe in HDF file..."
             df.to_hdf(target, HDF_CACHE, append=False)
 
