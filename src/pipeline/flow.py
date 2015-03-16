@@ -226,7 +226,7 @@ class Builder(BaseBuilder):
             table = self._calc_rca(table, setts, tconf)
             table = table.reset_index()
             # TODO: fix growth
-            # table = self._do_growth(table, table_name, pk, var_map)
+            table = self._do_growth(table, table_name, pk, var_map)
 
             print table.head(), "final table [head]"
             to_drop = self._get_setting(DROP, setts, optional=True, default=[])
