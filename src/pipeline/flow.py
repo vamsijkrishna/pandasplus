@@ -12,6 +12,7 @@ from src.pipeline.exceptions import InvalidSettingException
 from src.pipeline._table_manipulation import add_column_lengths, add_summary_rows
 
 from src.plugins import rca_helper
+from src.plugins import complexity_helper
 from src.fetcher.fetch import grab_if_needed
 
 from src.pipeline import growth
@@ -225,7 +226,10 @@ class Builder(BaseBuilder):
             tconf = self._get_setting(RCA, setts, None)
             table = self._calc_rca(table, setts, tconf)
             table = table.reset_index()
-            # TODO: fix growth
+
+            tconf = self._get_setting(COMPLEXITY, setts, None)
+            self._calc_complexity(table, setts, tconf, var_map)
+
             table = self._do_growth(table, table_name, pk, var_map)
 
             print table.head(), "final table [head]"
@@ -251,6 +255,12 @@ class Builder(BaseBuilder):
             tmp = self._crossproduct(table, depths)
             return rca_helper.calc_rca(table, depths=tmp, **gconf)
         return table
+
+    def _calc_complexity(self, table, table_setts, gconf, var_map):
+        if gconf:
+            depths = self._get_setting(DEPTHS, gconf, None, optional=False)
+            depths = self._crossproduct(table, depths)
+            complexity_helper.calc_complexity(self, table, gconf, depths, var_map)
 
     def _do_growth(self, table, table_name, pk, var_map):
         growth_setts = self._get_config([GLOBAL, GROWTH], optional=True, default=None)
