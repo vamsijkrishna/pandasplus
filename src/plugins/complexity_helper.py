@@ -21,15 +21,16 @@ def calc_complexity(builder, df, settings, depths, var_map):
     master_pci = pd.DataFrame()
 
     for depth in depths:
-        final_cond = reduce(lambda x,y : x & y, depth)
+        conds = depth + [rca_df[rca_col].notnull()]
+        final_cond = reduce(lambda x,y : x & y, conds)
         print "Computing complexity at depth", depth
-        my_rca = rca_df[final_cond]    
+        my_rca = rca_df[final_cond].copy()
         my_rca["rca"] = (my_rca[rca_col] >= 1).astype(int)
         moi = pivot_table(my_rca, values='rca', index='province and city', columns='HS8')
         moi = moi.fillna(0)
 
         eci, pci = _complexity(moi)
-        
+
         eci = pd.DataFrame(eci).rename(columns={0: "eci"})
         print "ECI", eci
         eci = eci.reset_index()
@@ -62,8 +63,8 @@ def _complexity(rcas, drop=True):
     if drop:
       rcas = rcas_clone
   
-  kp = rcas.sum(axis=0)
-  kc = rcas.sum(axis=1)
+  kp = rcas_clone.sum(axis=0)
+  kc = rcas_clone.sum(axis=1)
   kp0 = kp.copy()
   kc0 = kc.copy()
 
