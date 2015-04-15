@@ -5,6 +5,7 @@ import os
 from src.plugins.helpers import get_file
 import pandas as pd
 import bz2
+import StringIO
 
 class BaseBuilder(object):
     def __init__(self, config):
@@ -12,6 +13,7 @@ class BaseBuilder(object):
         self.coerce = self._get_config([GLOBAL, TYPE], optional=True, default={})
         for k in self.coerce:
             self.coerce[k] = eval(self.coerce[k])
+        self.preview = {}
 
     def _get_config(self, name, optional=False, default=None):
         if type(name) == str:
@@ -67,6 +69,13 @@ class BaseBuilder(object):
         df = pd.read_hdf(target, HDF_CACHE)
         return (df, target)
 
+    def _file_to_df(self, file_obj):
+        delim = self._get_config([GLOBAL, SEPERATOR], optional=True, default=";")
+        dec = self._get_config([GLOBAL, DECIMAL], optional=True, default=",")
+        encoding = self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
+        df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce)
+        return df
+
     def _to_df(self, input_file, use_cache=True, var_map=None, save_to_cache=True):
         hdf_df, target = self._check_hdf_cache(input_file, var_map)
         if hdf_df is not False and use_cache:
@@ -76,31 +85,39 @@ class BaseBuilder(object):
         self._check_file(input_file, var_map)
         print "Opening file..."
         input_file = get_file(input_file)
-
-        delim = self._get_config([GLOBAL, SEPERATOR], optional=True, default=";")
-        dec = self._get_config([GLOBAL, DECIMAL], optional=True, default=",")
-        encoding = self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
-        df = pd.read_csv(input_file, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce)
+        df = self._file_to_df(input_file)
         if use_cache and save_to_cache:
             print "Saving dataframe in HDF file..."
             df.to_hdf(target, HDF_CACHE, append=False)
 
         return df
 
+    def _str_save(self, table_name, tbl, var_map=None):
+        print "** In memory save!"
+        output = StringIO.StringIO()
+        encoding = "utf-8-sig"
+        tbl.to_csv(output, sep="\t", index=False, encoding=encoding)
+        output.seek(0)
+        self.preview[table_name] = output
+
     def save(self, table_name, tbl, var_map=None):
         print "** Saving", table_name, "..."
-        
-        output_path = self._output_str(var_map)
+        mode = self._get_config([GLOBAL, MODE], optional=True)
+        print mode, "=mode"
+        if mode == PREVIEW:
+            self._str_save(table_name, tbl, var_map=var_map)
+        else:
+            output_path = self._output_str(var_map)
 
-        # -- check if output path exists, if not create it
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
+            # -- check if output path exists, if not create it
+            if not os.path.exists(output_path):
+                os.makedirs(output_path)
 
-        file_name = table_name + ".tsv.bz2"
-        new_file_path = os.path.abspath(os.path.join(output_path, file_name))
-        encoding = "utf-8-sig" #self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
-        tbl.to_csv(bz2.BZ2File(new_file_path, 'wb'), sep="\t", index=False, encoding=encoding)
-        print "** Save complete."
-        self._import_to_db(new_file_path) 
+            file_name = table_name + ".tsv.bz2"
+            new_file_path = os.path.abspath(os.path.join(output_path, file_name))
+            encoding = "utf-8-sig" #self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
+            tbl.to_csv(bz2.BZ2File(new_file_path, 'wb'), sep="\t", index=False, encoding=encoding)
+            print "** Save complete."
+            self._import_to_db(new_file_path)
 
                 # self._run_helper(df, var_map=var_map)

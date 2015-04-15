@@ -40,6 +40,7 @@ class Builder(BaseBuilder):
         self.nan_rules = self._get_config([GLOBAL, NAN], optional=True, default={})
         td_config = self._get_config([GLOBAL, "transformed_depths"], optional=True, default={})
         self.transformed_depths = self._setup_transfomers(td_config)
+        self.preview = {}
 
     def _setup_transfomers(self, transformers):
         db_converters = {colname: self.db.make_dict(**settings)
@@ -183,8 +184,12 @@ class Builder(BaseBuilder):
         df = self._apply_renames(df)
 
         print "Running converters..."
-        for x, colmap in self.converters.items():
-            df[x] = df[x].map(colmap)
+        for colname, colmap in self.converters.items():
+            ifmissing = self._get_config([GLOBAL, colname, "ifmissing"], optional=True, default=None)
+            if ifmissing:
+                df.loc[~df[colname].isin(colmap.keys()), colname] = ifmissing
+                colmap[ifmissing] = ifmissing
+            df[colname] = df[colname].map(colmap)
 
         print "Replacing null values..."
         for x,v in self.nan_rules.items():
@@ -273,6 +278,9 @@ class Builder(BaseBuilder):
         growth_cols = growth_setts[COLUMNS]
 
         start = self._get_config([GLOBAL, SOURCE_VARS, time_col, START])
+        gstart = self._get_config([GLOBAL, GROWTH, time_col, START], optional=True)
+        if gstart:
+            start = gstart
 
         print "GrowthCOL=", growth_cols, "time_col=", time_col, "start=", start
         for d in deltas:
@@ -281,7 +289,7 @@ class Builder(BaseBuilder):
                 print "Do one year growth calculation...", var, start, d
                 growth_path = self.get_filepath(table_name, {time_col: unicode(var - d) })
                 file_prev = get_file(growth_path)
-                tbl_prev = pd.read_csv(file_prev, sep="\t", encoding="utf-8-sig") # TODO: encoding!
+                tbl_prev = pd.read_csv(file_prev, sep="\t", encoding="utf-8-sig", converters=self.coerce)
                 table = growth.do_growth(table, tbl_prev, pk, growth_cols, years_ago=d, delta_col=time_col)
 
         return table

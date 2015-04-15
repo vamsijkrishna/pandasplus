@@ -1,0 +1,126 @@
+global:
+    encoding: "utf-8-sig"
+    seperator: ";"
+    name: hedu
+    source : "/Users/jspeiser/escritorio/dataviva-scripts/data/hedu/Undergraduate_census_<year>_microdata.csv"
+    source_vars:
+        year:
+            start: 2013
+            end: 2013
+
+    # growth:
+    #     year: 
+    #         start: 2012
+    #     columns: ["enrolled", "gradutes"]
+    #     delta: [1]
+    #     time_column: year
+
+    output : "/Users/jspeiser/hedu_output/<year>"
+
+    post_agg_add_pklengths: 1
+
+    # type must be the original name of the column (before rename)
+    type:
+        CO_Course : "str"
+        ID_university : "str"
+        Municipality: "str"
+        Location : "int"
+        Color : "int"
+        Adm_Dependency: "int"
+
+    transform:
+        course_hedu_id:
+            -
+                type: "conditional_map"
+                target: "course_hedu_id"
+                func: "lambda x: '000000'"
+                condition: "df.course_hedu_id.str.len() == 0"
+            -
+                type: "zfill"
+                size: 6
+        university_id:
+            -
+                type: "zfill"
+                size: 5
+
+    default_transformations:
+        bra_id:
+            type: "DBLOOKUP"
+            table: "attrs_bra"
+            key : "id_ibge"
+            value : "id"
+
+    bra_id:
+        ifmissing: "0xx000007"
+
+    # course_hedu_id:
+    #     ifmissing: "000000"
+
+    agg:
+        age: "mean"
+        enrolled: "sum"
+        entrants: "sum"
+        graduates: "sum"
+        students: "nunique"
+        morning: "sum"
+        afternoon: "sum"
+        night: "sum"
+        full_time: "sum"
+        entrants: "sum"
+
+    rename:
+        Year: "zzz_year"
+        ID_Enrolled: "enrolled"
+        ID_Graduates: "graduates"
+        ID_Entrants: "entrants"
+        Morning: "morning"
+        Evening: "afternoon"
+        Night: "night"
+        Full_time: "full_time"
+        ID_student: "students"
+        Municipality: "bra_id"
+        Age: "age"
+        CO_Course: "course_hedu_id"
+        ID_university: "university_id"
+
+tables:
+    yb:
+        rename:
+            university_id: "num_universities"
+        depths: {"year" : [True], "bra_id": [1, 3, 5, 7, 9]}
+        pk: ["year", "bra_id"]
+        agg:
+            age: "mean"
+            enrolled: "sum"
+            entrants: "sum"
+            graduates: "sum"
+            students: "nunique"
+            morning: "sum"
+            afternoon: "sum"
+            night: "sum"
+            full_time: "sum"
+            entrants: "sum"
+            num_universities: "nunique"
+    yc:
+        depths: {"year" : [True], "course_hedu_id": [2, True]}
+        pk: ["year", "course_hedu_id"]
+
+    yu:
+        depths: {"year" : [True], "university_id": [True]}
+        pk: ["year", "university_id"]
+
+    ybc:
+        depths: {"year" : [True], "bra_id": [1, 3, 5, 7, 9], "course_hedu_id": [2, True]}
+        pk: ["year", "bra_id", "course_hedu_id"]
+
+    ybu:
+        depths: {"year" : [True], "bra_id": [1, 3, 5, 7, 9], "university_id": [True]}
+        pk: ["year", "bra_id", "university_id"]
+
+    yuc:
+        depths: {"year" : [True], "university_id": [True], "course_hedu_id": [2, True]}
+        pk: ["year", "bra_id", "university_id", "course_hedu_id"]
+
+    ybuc:
+        depths: {"year" : [True], "bra_id": [1, 3, 5, 7, 9], "university_id": [True], "course_hedu_id": [2, True]}
+        pk: ["year", "bra_id", "university_id", "course_hedu_id"]

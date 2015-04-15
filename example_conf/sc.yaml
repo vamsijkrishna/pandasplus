@@ -1,17 +1,18 @@
 global:
     seperator: ";"
     name: sc
-    source : "/Users/jspeiser/code/pandasplus/data/sc/School_census_<year>.csv"
+    source : "/Users/jspeiser/escritorio/dataviva-scripts/data/sc/small_<year>.csv"
+
     source_vars:
         year:
-            start: 2008
-            end: 2012
-    # growth:
-        # start: 2007
-        # columns: ["enrolled"]
-        # delta: [1,5]
-        # time_column: year
-    output : "/Users/jspeiser/sc_output/<year>"
+            start: 2009
+            end: 2014
+    growth:
+        start: 2009
+        columns: ["enrolled"]
+        delta: [1, 5]
+        time_column: year
+    output : "/Users/jspeiser/sc_output_pp/small/<year>"
 
     post_agg_add_pklengths: 1
     # ftp_paths: {
