@@ -73,7 +73,11 @@ class BaseBuilder(object):
         delim = self._get_config([GLOBAL, SEPERATOR], optional=True, default=";")
         dec = self._get_config([GLOBAL, DECIMAL], optional=True, default=",")
         encoding = self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
-        df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce)
+        columns = self._get_config([GLOBAL, COLUMNS], optional=True)
+        if columns:
+            df = pd.read_csv(file_obj, names=columns, header=None, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce)
+        else:
+            df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce)
         return df
 
     def _to_df(self, input_file, use_cache=True, var_map=None, save_to_cache=True):
