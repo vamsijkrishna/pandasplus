@@ -119,4 +119,8 @@ def process_operation(df, colname, settings, agg=None, pk=[]):
     elif settings[TYPE] == PREPEND and colname in pk:
         df.loc[df[colname].str.len() == 0, colname] = 'XXXXXX'
         df[colname] = settings[VALUE] + df[colname].astype(unicode)
+    elif settings[TYPE] == REPLACE and colname in pk:
+        target = settings[TARGET]
+        value = settings[VALUE]
+        df[colname] = df[colname].str.replace(target, value)
     return df
