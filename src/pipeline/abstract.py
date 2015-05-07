@@ -74,10 +74,12 @@ class BaseBuilder(object):
         dec = self._get_config([GLOBAL, DECIMAL], optional=True, default=",")
         encoding = self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
         columns = self._get_config([GLOBAL, COLUMNS], optional=True)
+        na_values = self._get_config([GLOBAL, NA_VALUES], optional=True)
+
         if columns:
-            df = pd.read_csv(file_obj, names=columns, header=None, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce)
+            df = pd.read_csv(file_obj, names=columns, header=None, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce, na_values=na_values)
         else:
-            df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce)
+            df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce, na_values=na_values)
         return df
 
     def _to_df(self, input_file, use_cache=True, var_map=None, save_to_cache=True):
