@@ -52,20 +52,25 @@ global:
 
 
 tables:
-    ygpw:
-        pk: ["year", "province and city", "HS8", "export destination country"]
-        depths: { "year": ["identity"], "export destination country": [2, YES], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
+    # ygpw:
+        # pk: ["year", "province and city", "HS8", "export destination country"]
+        # depths: { "year": ["identity"], "export destination country": [2, YES], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
 
     # ymgp:
         # pk: ["year", "month", "province and city", "HS8"]
         # depths: { "year": ["identity"], "month":["identity"], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
 
-    # ygp:
-        # pk: ["year", "province and city", "HS8"]
-        # depths: { "year": ["identity"], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
-        # rca:
-            # index: ["year", "province and city"]
-            # column: "HS8"
-            # values: [$ amount出口]
-
+    ygp:
+        pk: ["year", "province and city", "HS8"]
+        depths: { "year": ["identity"], "province and city" : [2, 4, YES], "HS8": [2, YES]  }
+        rca:
+            index: ["year", "province and city"]
+            column: "HS8"
+            values: [$ amount出口]
+        complexity:
+            depths: { "year": ["identity"], "province and city" : [4], "HS8": [YES] }
+            geo: "province and city"
+            product: "HS8"
+            rca: $ amount出口_rca
+            time: "year"
 

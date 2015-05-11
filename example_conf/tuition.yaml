@@ -1,0 +1,38 @@
+global:
+    seperator: ","
+    name: ipeds
+    source : "data/ipeds/ic<year>_ay.csv"
+    na_values: ["."]
+    source_vars:
+        year:
+            start: 2011
+            end: 2013
+    concat: YES
+
+    output : "/Users/jspeiser/code/ipeds/fin/<year>"
+    # type:
+        # TUITION7: "int"
+    # transform:
+    #     CIPCODE:
+    #         -
+    #             type: replace
+    #             target: "."
+    #             value: ""
+tables:
+    yu_tuition:
+        pk: ["year", "UNITID"]
+        agg:
+            TUITION1: "sum"
+            FEE1: "sum"
+            TUITION2: "sum"
+            FEE2: "sum"
+            TUITION3: "sum"
+            FEE3: "sum"
+            TUITION5: "sum"
+            FEE5: "sum"
+            TUITION6: "sum"
+            FEE6: "sum"
+            TUITION7: "sum"
+            FEE7: "sum"
+
+

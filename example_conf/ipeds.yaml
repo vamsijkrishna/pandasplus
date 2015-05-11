@@ -1,0 +1,52 @@
+global:
+    seperator: ","
+    name: sc
+    source : "data/ipeds/c<year>_a.csv"
+
+    source_vars:
+        year:
+            start: 2013
+            end: 2013
+
+    output : "/Users/jspeiser/code/ipeds/output/<year>"
+
+    transform:
+        CIPCODE:
+            -
+                type: replace
+                target: "."
+                value: ""
+tables:
+    yucd_grads:
+        pk: ["year", "UNITID", "CIPCODE", "AWLEVEL"]
+        agg:
+            CTOTALT: "sum"
+            CTOTALM: "sum"
+            CTOTALW: "sum"
+            CAIANT: "sum"
+            CAIANM: "sum"
+            CAIANW: "sum"
+            CASIAT: "sum"
+            CASIAM: "sum"
+            CASIAW: "sum"
+            CBKAAT: "sum"
+            CBKAAM: "sum"
+            CBKAAW: "sum"
+            CHISPT: "sum"
+            CHISPM: "sum"
+            CHISPW: "sum"
+            CNHPIT: "sum"
+            CNHPIM: "sum"
+            CNHPIW: "sum"
+            CWHITT: "sum"
+            CWHITM: "sum"
+            CWHITW: "sum"
+            C2MORT: "sum"
+            C2MORM: "sum"
+            C2MORW: "sum"
+            CUNKNT: "sum"
+            CUNKNM: "sum"
+            CUNKNW: "sum"
+            CNRALT: "sum"
+            CNRALM: "sum"
+            CNRALW: "sum"
