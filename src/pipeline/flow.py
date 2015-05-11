@@ -48,9 +48,9 @@ class Builder(BaseBuilder):
         return db_converters
 
     def _build_agg(self, setts):
+        if setts == SUM:
+            return pd.Series.sum
         return {k: getattr(pd.Series, v) for k,v in setts.items()}
-
-
 
     def _depth_combos(self, df, agg, pk, setts):
         addtl_rows = pd.DataFrame()
@@ -204,7 +204,9 @@ class Builder(BaseBuilder):
             pk = setts["pk"]
             agg = self._get_setting(AGG, setts)
             agg = self.aggs if not agg else self._build_agg(agg)
-            agg = {k:v for k,v in agg.items()} # deep copy
+
+            if type(agg) == type({}):
+                agg = {k:v for k,v in agg.items()} # deep copy
 
             ''' Do we need to add any computation before aggregating? '''
             table_conf = self._get_setting(TRANSFORM, setts, None)
