@@ -9,30 +9,10 @@ global:
             end: 2013
     concat: YES
 
+    columns: ["UNITID", "TUITION1", "TUITION2", "TUITION3", "TUITION5", "TUITION6", "TUITION7", "FEE1", "FEE2", "FEE3", "FEE5", "FEE6", "FEE7"]
     output : "/Users/jspeiser/code/ipeds/fin/<year>"
-    # type:
-        # TUITION7: "int"
-    # transform:
-    #     CIPCODE:
-    #         -
-    #             type: replace
-    #             target: "."
-    #             value: ""
+
 tables:
     yu_tuition:
         pk: ["year", "UNITID"]
-        agg:
-            TUITION1: "sum"
-            FEE1: "sum"
-            TUITION2: "sum"
-            FEE2: "sum"
-            TUITION3: "sum"
-            FEE3: "sum"
-            TUITION5: "sum"
-            FEE5: "sum"
-            TUITION6: "sum"
-            FEE6: "sum"
-            TUITION7: "sum"
-            FEE7: "sum"
-
-
+        agg: sum

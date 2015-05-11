@@ -76,10 +76,9 @@ class BaseBuilder(object):
         columns = self._get_config([GLOBAL, COLUMNS], optional=True)
         na_values = self._get_config([GLOBAL, NA_VALUES], optional=True)
 
+        df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce, na_values=na_values)
         if columns:
-            df = pd.read_csv(file_obj, names=columns, header=None, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce, na_values=na_values)
-        else:
-            df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce, na_values=na_values)
+            df = df[columns].copy()
         return df
 
     def _to_df(self, input_file, use_cache=True, var_map=None, save_to_cache=True):
