@@ -26,7 +26,7 @@ import gc
 class Builder(BaseBuilder):
     def __init__(self, config):
         self.config = config
-        self.db = DB()
+        # self.db = DB()
 
         transformers = self._get_config([GLOBAL, "default_transformations"], optional=True, default={})
         self.converters = self._setup_transfomers(transformers)

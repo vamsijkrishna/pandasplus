@@ -1,0 +1,31 @@
+global:
+    seperator: ","
+    name: pums
+    source : "/Users/jspeiser/code/census-explorer/acs/pums/data/ohio_<year>_5yr_pums.csv"
+    source_vars:
+        year:
+            start: 2010
+            end: 2010
+
+    output : "/Users/jspeiser/pums_output/<year>"
+
+    # type must be the original name of the column (before rename)
+    type:
+        occp02 : "str"
+        occp10 : "str"
+
+    PUMA:
+        ifmissing: -9
+
+    agg: "sum"
+
+    transform:
+        df:
+            type: frame_func
+            func: "plugins.census.pums.process"
+            columns: ["WAGP"]
+
+tables:
+    yb:
+        pk: ["year", "POWSP", "PUMA"]
+

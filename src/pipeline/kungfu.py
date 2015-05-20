@@ -123,4 +123,7 @@ def process_operation(df, colname, settings, agg=None, pk=[]):
         target = settings[TARGET]
         value = settings[VALUE]
         df[colname] = df[colname].str.replace(target, value)
+    elif settings[TYPE] == FRAME_FUNC:
+        func = str_to_func(settings[FUNC])
+        df = func(df, settings, pk=pk)
     return df
