@@ -1,5 +1,6 @@
 weight_col = "PWGTP"
 import pandas as pd
+import numpy as np
 from src.pipeline.consts import COLUMNS
 
 def process(df, settings=None, pk=[]):
@@ -12,13 +13,10 @@ def _replace(tdf, col, val1, val2):
     return tdf
 
 def _prepare(df, settings=None):
-    to_replace = [x for x in df.columns if "naics" in x.lower()]
+    to_replace = ["naicsp02", "naicsp07", "socp00", "socp10"]
     for col in to_replace:
-        df[col] = df[col].str.replace(r'N\.A\.\/*', '')
+        df.loc[df[col].isin(['N.A.//', 'N.A.']), col] = np.nan
     
-    df = _replace(df, "occp10", "N.A.", None)
-    # df02 = df[df.naicsp02.notnull()].copy()
-    # df07 = df[df.naicsp07.notnull()].copy()
     return df
 
 def _calculate(df, settings, pk):
@@ -39,7 +37,6 @@ def _calculate(df, settings, pk):
     df = df.reset_index()
     
     ''' Compute Margin of Error '''
-    # -- Compute the square of (Person WT0 - )^2
     rws = ["rw_" + str(i) for i in range(1, 81) ]
     for i in range(1, 81):
         df["rw_" + str(i)] = (df["value"] - df[weight_col + str(i)]) ** 2
@@ -51,8 +48,5 @@ def _calculate(df, settings, pk):
 
     pwgtps = [weight_col + str(i) for i in range(1,81)]
     df.drop(["variance", "se"] + rws + pwgtps, axis=1, inplace=True)
-    # TODO:
-    # DROP person weights
-    # KEEP only value/moe
 
     return df
