@@ -55,4 +55,5 @@ target/
 
 # pandasplus data folder
 data/
+!src/plugins/census/pums/data/
 *.DS_Store
