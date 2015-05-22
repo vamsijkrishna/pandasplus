@@ -1,11 +1,14 @@
 global:
     seperator: ","
     name: pums
-    source : "/Users/jspeiser/code/census-explorer/acs/pums/data/ohio_<year>_5yr_pums.csv"
+    source : "/Users/jspeiser/code/census-explorer/acs/pums/data/ohio_<year>_<est>yr_pums.csv"
     source_vars:
         year:
             start: 2010
             end: 2010
+        est:
+            start: 5
+            end: 5
 
     output : "/Users/jspeiser/pums_output/<year>"
 
@@ -27,5 +30,5 @@ global:
 
 tables:
     yb:
-        pk: ["year", "POWSP", "PUMA"]
+        pk: ["year", "POWSP", "PUMA", "socp00"]
 

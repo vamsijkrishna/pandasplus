@@ -1,10 +1,11 @@
+import os
 import pandas as pd
 
 # soc_map = pd.read_csv('data/occ02to10.csv', converters={"OCCP02": str, "OCCP10": str})
 # occ1012 = pd.read_csv('data/occ10to12.csv', converters={"OCCP10": str, "OCCP12": str})
 COL_RATE = "Total Conversion Rate"
-SOC_00 = "SOCP00"
-SOC_10 = "SOCP10"
+SOC_00 = "socp00"
+SOC_10 = "socp10"
 
 NAICS_02 = "NAICSP02"
 NAICS_07 = "NAICSP07"
@@ -16,31 +17,36 @@ HS_VAL = 20
 BA_VAL = 21
 ADV_VAL = 22
 
-soc_direct_map = pd.read_csv('data/SOC_00_to_10_direct.csv', converters={"SOCP00": str, "SOCP10": str})
+data_dir = os.path.dirname(__file__)
+
+def get_path(target):
+    return os.path.join(data_dir, target)
+
+soc_direct_map = pd.read_csv(get_path('data/SOC_00_to_10_direct.csv'), converters={"SOCP00": str, "SOCP10": str})
 soc_direct_map = soc_direct_map.to_dict(orient="records")
 soc_direct_map = {x[SOC_00] : x[SOC_10] for x in soc_direct_map}
 
-naics_direct_map = pd.read_csv('data/NAICS_02_to_07_direct.csv', converters={"NAICSP02": str, "NAICSP07": str})
+naics_direct_map = pd.read_csv(get_path('data/NAICS_02_to_07_direct.csv'), converters={"NAICSP02": str, "NAICSP07": str})
 naics_direct_map = naics_direct_map.to_dict(orient="records")
 naics_direct_map = {x[NAICS_02] : x[NAICS_07] for x in naics_direct_map}
 
-soc_hs_m_map = pd.read_csv('data/SOC_00_to_10_HS_M.csv', converters={"SOCP00": str, "SOCP10": str})
-soc_hs_f_map = pd.read_csv('data/SOC_00_to_10_HS_F.csv', converters={"SOCP00": str, "SOCP10": str})
-soc_ba_m_map = pd.read_csv('data/SOC_00_to_10_BA_M.csv', converters={"SOCP00": str, "SOCP10": str})
-soc_ba_f_map = pd.read_csv('data/SOC_00_to_10_BA_F.csv', converters={"SOCP00": str, "SOCP10": str})
-soc_adv_m_map = pd.read_csv('data/SOC_00_to_10_ADV_M.csv', converters={"SOCP00": str, "SOCP10": str})
-soc_adv_f_map = pd.read_csv('data/SOC_00_to_10_ADV_F.csv', converters={"SOCP00": str, "SOCP10": str})
+soc_hs_m_map = pd.read_csv(get_path('data/SOC_00_to_10_HS_M.csv'), converters={"SOCP00": str, "SOCP10": str})
+soc_hs_f_map = pd.read_csv(get_path('data/SOC_00_to_10_HS_F.csv'), converters={"SOCP00": str, "SOCP10": str})
+soc_ba_m_map = pd.read_csv(get_path('data/SOC_00_to_10_BA_M.csv'), converters={"SOCP00": str, "SOCP10": str})
+soc_ba_f_map = pd.read_csv(get_path('data/SOC_00_to_10_BA_F.csv'), converters={"SOCP00": str, "SOCP10": str})
+soc_adv_m_map = pd.read_csv(get_path('data/SOC_00_to_10_ADV_M.csv'), converters={"SOCP00": str, "SOCP10": str})
+soc_adv_f_map = pd.read_csv(get_path('data/SOC_00_to_10_ADV_F.csv'), converters={"SOCP00": str, "SOCP10": str})
 
-naics_hs_m_map = pd.read_csv('data/NAICS_02_to_07_HS_M.csv', converters={"NAICSP02": str, "NAICSP07": str})
-naics_hs_f_map = pd.read_csv('data/NAICS_02_to_07_HS_F.csv', converters={"NAICSP02": str, "NAICSP07": str})
-naics_ba_m_map = pd.read_csv('data/NAICS_02_to_07_BA_M.csv', converters={"NAICSP02": str, "NAICSP07": str})
-naics_ba_f_map = pd.read_csv('data/NAICS_02_to_07_BA_F.csv', converters={"NAICSP02": str, "NAICSP07": str})
-naics_adv_m_map = pd.read_csv('data/NAICS_02_to_07_ADV_M.csv', converters={"NAICSP02": str, "NAICSP07": str})
-naics_adv_f_map = pd.read_csv('data/NAICS_02_to_07_ADV_F.csv', converters={"NAICSP02": str, "NAICSP07": str})
+naics_hs_m_map = pd.read_csv(get_path('data/NAICS_02_to_07_HS_M.csv'), converters={"NAICSP02": str, "NAICSP07": str})
+naics_hs_f_map = pd.read_csv(get_path('data/NAICS_02_to_07_HS_F.csv'), converters={"NAICSP02": str, "NAICSP07": str})
+naics_ba_m_map = pd.read_csv(get_path('data/NAICS_02_to_07_BA_M.csv'), converters={"NAICSP02": str, "NAICSP07": str})
+naics_ba_f_map = pd.read_csv(get_path('data/NAICS_02_to_07_BA_F.csv'), converters={"NAICSP02": str, "NAICSP07": str})
+naics_adv_m_map = pd.read_csv(get_path('data/NAICS_02_to_07_ADV_M.csv'), converters={"NAICSP02": str, "NAICSP07": str})
+naics_adv_f_map = pd.read_csv(get_path('data/NAICS_02_to_07_ADV_F.csv'), converters={"NAICSP02": str, "NAICSP07": str})
 
 xforms = {SOC_00: SOC_10, NAICS_02: NAICS_07}
 
-def occ_trans(df, trans_df, on_col, value_col):
+def _transform(df, trans_df, on_col, value_col):
     df = pd.merge(df, trans_df, on=on_col, how="left")
     df.loc[df[COL_RATE].isnull(), xforms[on_col]] = df[on_col]
     df.loc[df[COL_RATE].isnull(), COL_RATE] = 1
@@ -50,10 +56,10 @@ def occ_trans(df, trans_df, on_col, value_col):
 # def occ_00_to_10(df, occ_trans_df, value_col):
     # return occ_trans(df, occ_trans_df, SOC_00, value_col)
 
-def convert(df, value_col, start_col):
-    ''' Use conversion tables to transform SOCP00 to SOCP10 across
-        classifications '''
+def _convert(df, value_col, start_col):
+    ''' Use conversion tables to transform across classifications '''
     if not start_col in df.columns:
+        print start_col, "Not in", df.columns
         return df
 
     if start_col == SOC_00:
@@ -102,16 +108,16 @@ def convert(df, value_col, start_col):
     new_df = pd.DataFrame()
     for (rule, rule_map) in rules:
         tmpdf = df[rule].copy()
-        tmpdf = occ_trans(tmpdf, rule_map, start_col, value_col)
+        tmpdf = _transform(tmpdf, rule_map, start_col, value_col)
         new_df = pd.concat([new_df, tmpdf])
 
     return new_df
 
 def occ_convert(df, value_col):
-    return convert(df, value_col, SOC_00)
+    return _convert(df, value_col, SOC_00)
 
 def naics_convert(df, value_col):
-    return convert(df, value_col, NAICS_02)
+    return _convert(df, value_col, NAICS_02)
 
 if __name__ == '__main__':
     moi = pd.DataFrame({"x": [100, 100], NAICS_02: ["51M", "51M"], "SEX":  [1, 2], "SCHL": [12, 12]})

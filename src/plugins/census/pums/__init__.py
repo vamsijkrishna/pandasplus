@@ -3,20 +3,35 @@ import pandas as pd
 import numpy as np
 from src.pipeline.consts import COLUMNS
 
+from src.plugins.census.pums.classfication_converter import naics_convert, occ_convert
+
 def process(df, settings=None, pk=[]):
-    df = _prepare(df, settings)
-    return _calculate(df, settings, pk)
+    df = _prepare(df, settings, pk)
+    df = _calculate(df, settings, pk)
+    df = _post_process(df, settings, pk)
+    return df
+
+def _post_process(df, settings, pk):
+    print "PK=", pk
+    naics02, soc00 = "naics02", "socp00"
+
+    if naics02 in pk:
+        print "DO THIS THING FOR NAICS!"
+        df = naics_convert(df, "value")
+    if soc00 in pk:
+        print "DO THIS THING FOR SOC!"
+        df = occ_convert(df, "value")
+    return df
 
 def _replace(tdf, col, val1, val2):
     if col in tdf.columns:
         tdf.occp02 = tdf.occp02.replace(val1, val2)
     return tdf
 
-def _prepare(df, settings=None):
+def _prepare(df, settings=None, pk=[]):
     to_replace = ["naicsp02", "naicsp07", "socp00", "socp10"]
     for col in to_replace:
         df.loc[df[col].isin(['N.A.//', 'N.A.']), col] = np.nan
-    
     return df
 
 def _calculate(df, settings, pk):
