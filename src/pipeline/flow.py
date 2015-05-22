@@ -82,7 +82,7 @@ class Builder(BaseBuilder):
             addtl_rows = pd.concat([addtl_rows, table])
         return addtl_rows
 
-    def _computed_columns(self, computed, df, agg=None, pk=[]):
+    def _computed_columns(self, computed, df, agg=None, pk=[], var_map={}):
         # print "COMP", computed, pk
         if computed:
             if type(computed) == dict:
@@ -91,9 +91,9 @@ class Builder(BaseBuilder):
                 for k,v in c.items():
                     if type(v) == list:
                         for i in v:
-                            df = process_operation(df, k, i, agg, pk)
+                            df = process_operation(df, k, i, agg, pk, var_map)
                     else:
-                        df = process_operation(df, k, v, agg, pk)
+                        df = process_operation(df, k, v, agg, pk, var_map)
         return df
 
     def _compute_lengths(self, should_compute, table, pk, table_conf):
@@ -212,9 +212,9 @@ class Builder(BaseBuilder):
             table_conf = self._get_setting(TRANSFORM, setts, None)
             gconf = self._get_config([GLOBAL, TRANSFORM], optional=True)
 
-            mydf = self._computed_columns(gconf, mydf, agg, pk)
+            mydf = self._computed_columns(gconf, mydf, agg, pk, var_map)
             print "Agg=",agg
-            mydf = self._computed_columns(table_conf, mydf, agg, pk)
+            mydf = self._computed_columns(table_conf, mydf, agg, pk, var_map)
             if "depths" in setts:
                 table = self._depth_combos(mydf, agg, pk, setts)
             else:
@@ -222,7 +222,7 @@ class Builder(BaseBuilder):
                 table = mydf.groupby(pk).agg(agg)
 
             gconf = self._get_config([GLOBAL, POST_AGG_TRANSFORM], optional=True)
-            table = self._computed_columns(gconf, table, agg, pk)
+            table = self._computed_columns(gconf, table, agg, pk, var_map)
 
             gconf = self._get_config([GLOBAL, POST_AGG_PKLENGTHS], optional=True)
             table = self._compute_lengths(gconf, table, pk, setts)

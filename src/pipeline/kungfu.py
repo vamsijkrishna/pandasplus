@@ -21,7 +21,7 @@ def check_requirements(settings, df_cols):
                 return False
     return True
 
-def process_operation(df, colname, settings, agg=None, pk=[]):
+def process_operation(df, colname, settings, agg=None, pk=[], var_map={}):
 
     if settings[TYPE] == MELT and colname in pk:
         pluginpath = settings[FUNC]
@@ -125,5 +125,5 @@ def process_operation(df, colname, settings, agg=None, pk=[]):
         df[colname] = df[colname].str.replace(target, value)
     elif settings[TYPE] == FRAME_FUNC:
         func = str_to_func(settings[FUNC])
-        df = func(df, settings, pk=pk)
+        df = func(df, settings, pk=pk, var_map=var_map)
     return df
