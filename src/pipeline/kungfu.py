@@ -69,7 +69,7 @@ def process_operation(df, colname, settings, agg=None, pk=[], var_map={}):
             col = settings[COPY_COL]
             df.loc[cond, colname] = df[col]
 
-    elif settings[TYPE] == ZFILL and ((colname in agg) or (colname in pk)): # -- do selective application
+    elif settings[TYPE] == ZFILL and ((colname in pk) or (colname in agg)): # -- do selective application
         size = settings[SIZE]
         df[colname] = df[colname].astype(str).str.pad(size)
         df[colname] = df[colname].str.replace(' ', '0')

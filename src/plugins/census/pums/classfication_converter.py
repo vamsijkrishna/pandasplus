@@ -50,7 +50,11 @@ def _transform(df, trans_df, on_col, value_col):
     df = pd.merge(df, trans_df, on=on_col, how="left")
     df.loc[df[COL_RATE].isnull(), xforms[on_col]] = df[on_col]
     df.loc[df[COL_RATE].isnull(), COL_RATE] = 1
-    df[value_col] = df[value_col] * df[COL_RATE]
+    if type(value_col) == type([]):
+        for vcol in value_col:
+            df[vcol] = df[vcol] * df[COL_RATE]
+    else:
+        df[value_col] = df[value_col] * df[COL_RATE]
     return df.drop([on_col, COL_RATE], axis=1)
 
 # def occ_00_to_10(df, occ_trans_df, value_col):
@@ -98,7 +102,7 @@ def _convert(df, value_col, start_col):
 
     EVERYTHING_ELSE = ~HS_MALE & ~HS_FEMALE & ~BA_MALE & ~BA_FEMALE & ~ADV_MALE & ~ADV_FEMALE
     
-    if df[EVERYTHING_ELSE][value_col].count() > 0:
+    if not df[EVERYTHING_ELSE][value_col].empty:
         raise Exception("*** ERROR! Unaccounted for people")
 
     rules = [ (HS_MALE, hs_m_map), (HS_FEMALE, hs_f_map),

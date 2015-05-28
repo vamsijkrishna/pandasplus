@@ -16,9 +16,11 @@ global:
     type:
         occp02 : "str"
         occp10 : "str"
+        POWSP: "str"
 
-    PUMA:
-        ifmissing: -9
+
+    POWPUMA:
+        ifmissing: "XXXXX"
 
     agg: "sum"
 
@@ -26,9 +28,10 @@ global:
         df:
             type: frame_func
             func: "plugins.census.pums.process"
-            columns: ["WAGP"]
+            value: "WAGP"
+
 
 tables:
     yb:
-        pk: ["year", "POWSP", "PUMA", "socp00"]
+        pk: ["year", "POWSP", "POWPUMA"]
 
