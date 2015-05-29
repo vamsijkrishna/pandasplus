@@ -1,7 +1,7 @@
 global:
     seperator: ","
     name: pums
-    source : "/Users/jspeiser/code/census-explorer/acs/pums/data/ohio_<year>_<est>yr_pums.csv"
+    source : "/Users/jspeiser/pums_entire_usa/usa_<year>_<est>yr_<part>.csv"
     source_vars:
         year:
             start: 2010
@@ -9,6 +9,7 @@ global:
         est:
             start: 5
             end: 5
+        part: ["a", "b", "c", "d"]
 
     output : "/Users/jspeiser/pums_output/<year>"
 

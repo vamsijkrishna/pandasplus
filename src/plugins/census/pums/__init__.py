@@ -10,21 +10,23 @@ def process(df, settings=None, pk=[], var_map={}):
     print "SCHL" in df.columns
 
     df = _prepare(df, settings, pk)
-    df, pk = _post_process(df, settings, pk)
+    df, pk = _post_process(df, settings, pk, var_map=var_map)
     df = statistics.compute(df, settings, pk)
     return df
 
-def _post_process(df, settings, pk):
+def _post_process(df, settings, pk, var_map={}):
     print "PK=", pk
     naics02, soc00 = "naicsp02", "socp00"
 
+    old_school_mode = (int(var_map["year"]) - int(var_map["est"]) + 1) <= 2007
+
     if naics02 in pk:
         print "Converting NAICS codes..."
-        df = naics_convert(df, "value")
+        df = naics_convert(df, "value", old_school_mode)
         pk[pk.index(naics02)] = "naicsp07"
     if soc00 in pk:
         print "Converting SOC codes..."
-        df = occ_convert(df, settings[VALUE])
+        df = occ_convert(df, settings[VALUE], old_school_mode)
         pk[pk.index(soc00)] = "socp10"
     return df, pk
 

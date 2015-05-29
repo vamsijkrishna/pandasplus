@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 
 # soc_map = pd.read_csv('data/occ02to10.csv', converters={"OCCP02": str, "OCCP10": str})
 # occ1012 = pd.read_csv('data/occ10to12.csv', converters={"OCCP10": str, "OCCP12": str})
@@ -13,9 +14,7 @@ NAICS_07 = "NAICSP07"
 MALE_VAL = 1
 FEMALE_VAL = 2
 
-HS_VAL = 20
-BA_VAL = 21
-ADV_VAL = 22
+
 
 data_dir = os.path.dirname(__file__)
 
@@ -44,24 +43,37 @@ naics_ba_f_map = pd.read_csv(get_path('data/NAICS_02_to_07_BA_F.csv'), converter
 naics_adv_m_map = pd.read_csv(get_path('data/NAICS_02_to_07_ADV_M.csv'), converters={"NAICSP02": str, "NAICSP07": str})
 naics_adv_f_map = pd.read_csv(get_path('data/NAICS_02_to_07_ADV_F.csv'), converters={"NAICSP02": str, "NAICSP07": str})
 
+
+
 xforms = {SOC_00: SOC_10, NAICS_02: NAICS_07}
 
-def _transform(df, trans_df, on_col, value_col):
-    df = pd.merge(df, trans_df, on=on_col, how="left")
-    df.loc[df[COL_RATE].isnull(), xforms[on_col]] = df[on_col]
-    df.loc[df[COL_RATE].isnull(), COL_RATE] = 1
-    if type(value_col) == type([]):
-        for vcol in value_col:
-            df[vcol] = df[vcol] * df[COL_RATE]
-    else:
-        df[value_col] = df[value_col] * df[COL_RATE]
-    return df.drop([on_col, COL_RATE], axis=1)
+def randomizer(code, rule_map, start_col):
+    rand_val = np.random.random_sample()
+    # print "random=", rand_val
+    tmpdf = rule_map[rule_map[start_col] == code]
+    vals = tmpdf[COL_RATE].values
+    total = 0
+    idx = 0
+    for v in vals:
+        total += v
+        if rand_val <= total:
+            break
+        else:
+            idx += 1
+    return tmpdf.loc[idx][xforms[start_col]]
 
-# def occ_00_to_10(df, occ_trans_df, value_col):
-    # return occ_trans(df, occ_trans_df, SOC_00, value_col)
-
-def _convert(df, value_col, start_col):
+def _convert(df, value_col, start_col, school_mode=None):
     ''' Use conversion tables to transform across classifications '''
+
+    if not school_mode:
+        HS_VAL = 20
+        BA_VAL = 21
+        ADV_VAL = 22
+    else: # -- use the 2007 classification system
+        HS_VAL = 12
+        BA_VAL = 13
+        ADV_VAL = 24
+
     if not start_col in df.columns:
         print start_col, "Not in", df.columns
         return df
@@ -109,26 +121,23 @@ def _convert(df, value_col, start_col):
                 (BA_MALE, ba_m_map), (BA_FEMALE, ba_f_map),
                 (ADV_MALE, adv_m_map), (ADV_FEMALE, adv_f_map)]
 
-    new_df = pd.DataFrame()
     for (rule, rule_map) in rules:
-        tmpdf = df[rule].copy()
-        tmpdf = _transform(tmpdf, rule_map, start_col, value_col)
-        new_df = pd.concat([new_df, tmpdf])
+        df.loc[rule, xforms[start_col]] = df[rule][start_col].apply(lambda x: randomizer(x, rule_map, start_col))
 
-    return new_df
+    return df
 
-def occ_convert(df, value_col):
-    return _convert(df, value_col, SOC_00)
+def occ_convert(df, value_col, school_mode=None):
+    return _convert(df, value_col, SOC_00, school_mode=school_mode)
 
-def naics_convert(df, value_col):
-    return _convert(df, value_col, NAICS_02)
+def naics_convert(df, value_col, school_mode=None):
+    return _convert(df, value_col, NAICS_02, school_mode=school_mode)
 
 if __name__ == '__main__':
-    moi = pd.DataFrame({"x": [100, 100], NAICS_02: ["51M", "51M"], "SEX":  [1, 2], "SCHL": [12, 12]})
+    moi = pd.DataFrame({"x": [100], SOC_00: ["113040"], "SEX":  [2], "SCHL": [10]})
     print "Original:"
     print moi.head()
     print
     res = occ_convert(moi, "x")
-    res = naics_convert(res, "x")
+    # res = naics_convert(res, "x")
     print "Converted:"
     print res
