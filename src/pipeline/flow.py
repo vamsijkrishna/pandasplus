@@ -118,7 +118,10 @@ class Builder(BaseBuilder):
             ds = {}
             for var in s_vars:
                 params = source_vars[var]
-                ds[var] = range(params["start"], params["end"] + 1)
+                if isinstance(params, dict):
+                    ds[var] = range(params["start"], params["end"] + 1)
+                else:
+                    ds[var] = params
 
             labels = ds.keys()
             combos = itertools.product(*ds.values())
