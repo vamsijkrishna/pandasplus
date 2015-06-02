@@ -62,7 +62,7 @@ def randomizer(code, rule_map, start_col):
             idx += 1
     return tmpdf.loc[idx][xforms[start_col]]
 
-def _convert(df, value_col, start_col, school_mode=None):
+def _convert(df, start_col, school_mode=None):
     ''' Use conversion tables to transform across classifications '''
 
     if not school_mode:
@@ -114,7 +114,7 @@ def _convert(df, value_col, start_col, school_mode=None):
 
     EVERYTHING_ELSE = ~HS_MALE & ~HS_FEMALE & ~BA_MALE & ~BA_FEMALE & ~ADV_MALE & ~ADV_FEMALE
     
-    if not df[EVERYTHING_ELSE][value_col].empty:
+    if not df[EVERYTHING_ELSE][start_col].empty:
         raise Exception("*** ERROR! Unaccounted for people")
 
     rules = [ (HS_MALE, hs_m_map), (HS_FEMALE, hs_f_map),
@@ -126,14 +126,14 @@ def _convert(df, value_col, start_col, school_mode=None):
 
     return df
 
-def occ_convert(df, value_col, school_mode=None):
-    return _convert(df, value_col, SOC_00, school_mode=school_mode)
+def occ_convert(df, school_mode=None):
+    return _convert(df, SOC_00, school_mode=school_mode)
 
-def naics_convert(df, value_col, school_mode=None):
-    return _convert(df, value_col, NAICS_02, school_mode=school_mode)
+def naics_convert(df, school_mode=None):
+    return _convert(df, NAICS_02, school_mode=school_mode)
 
 if __name__ == '__main__':
-    moi = pd.DataFrame({"x": [100], SOC_00: ["113040"], "SEX":  [2], "SCHL": [10]})
+    moi = pd.DataFrame({"x": [100], NAICS_02: ["N.A.////"], "SEX":  [2], "SCHL": [10]})
     print "Original:"
     print moi.head()
     print

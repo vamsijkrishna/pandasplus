@@ -1,0 +1,27 @@
+global:
+    seperator: ","
+    name: pums
+    source : "$CENSUS_DATA/CBP/cbp<year>co.csv"
+    source_vars:
+        year:
+            start: 2013
+            end: 2013
+
+    output : "/Users/jspeiser/cbp_output/<year>"
+
+    # type must be the original name of the column (before rename)
+    type:
+        occp02 : "str"
+
+    agg: "sum"
+
+    transform:
+        df:
+            type: frame_func
+            func: "plugins.census.cbp.process"
+
+
+tables:
+    yb:
+        pk: ["year", ""]
+

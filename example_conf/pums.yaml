@@ -9,7 +9,7 @@ global:
         est:
             start: 5
             end: 5
-        part: ["a", "b", "c", "d"]
+        part: ["a"] #, "b", "c", "d"]
 
     output : "/Users/jspeiser/pums_output/<year>"
 
@@ -29,10 +29,9 @@ global:
         df:
             type: frame_func
             func: "plugins.census.pums.process"
-            value: "WAGP"
 
 
 tables:
-    yb:
-        pk: ["year", "POWSP", "POWPUMA"]
+    ygi:
+        pk: ["year", "geo"]
 
