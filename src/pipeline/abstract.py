@@ -2,10 +2,16 @@ from consts import *
 import re
 import itertools
 import os
+from sqlalchemy import create_engine
 from src.plugins.helpers import get_file
+from src.pipeline import db
+from src.fetcher import fetch
+
 import pandas as pd
 import bz2
 import StringIO
+
+
 
 class BaseBuilder(object):
     def __init__(self, config):
@@ -50,7 +56,9 @@ class BaseBuilder(object):
         gconf = self._get_config([GLOBAL])
         if FTP_PATHS in gconf or WEB_PATHS in gconf:
             print "Attempting file and (if needed) FTP check", output_path
-            grab_if_needed(file_path, gconf)
+            for var, val in var_map.items():
+                file_path = file_path.replace("<{}>".format(var), val)
+            fetch.grab_if_needed(file_path, gconf, var_map)
 
     def _check_hdf_cache(self, input_file, var_map):
         output_path = self._output_str(var_map=var_map)
@@ -105,9 +113,19 @@ class BaseBuilder(object):
         output.seek(0)
         self.preview[table_name] = output
 
+    def _import_to_db(self, file_path, table_name, cols):
+        should_import = self._get_config([GLOBAL, DB_IMPORT], optional=True, default=False)
+        if should_import:
+            print "Preparing to import to database..."
+            table_name = self._get_config([GLOBAL, NAME]) + "_" + table_name
+            database_settings = self._get_config([GLOBAL, DB_SETTINGS])
+            db.write_table(file_path, table_name, cols, database_settings)
+            print "** DB import complete..."
+
     def save(self, table_name, tbl, var_map=None):
         print "** Saving", table_name, "..."
         mode = self._get_config([GLOBAL, MODE], optional=True)
+        name = self._get_config([GLOBAL, NAME])
         print mode, "=mode"
         if mode == PREVIEW:
             self._str_save(table_name, tbl, var_map=var_map)
@@ -118,11 +136,10 @@ class BaseBuilder(object):
             if not os.path.exists(output_path):
                 os.makedirs(output_path)
 
-            file_name = table_name + ".tsv.bz2"
+            # file_name = table_name + ".tsv.bz2"
+            file_name = "{}_{}.tsv".format(name, table_name)
             new_file_path = os.path.abspath(os.path.join(output_path, file_name))
             encoding = "utf-8-sig" #self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
-            tbl.to_csv(bz2.BZ2File(new_file_path, 'wb'), sep="\t", index=False, encoding=encoding)
+            tbl.to_csv(new_file_path, sep="\t", index=False, encoding=encoding)
             print "** Save complete."
-            self._import_to_db(new_file_path)
-
-                # self._run_helper(df, var_map=var_map)
+            self._import_to_db(new_file_path, table_name, tbl.columns)

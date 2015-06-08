@@ -1,7 +1,7 @@
 global:
     seperator: ","
     name: pums
-    source : "/Users/jspeiser/pums_entire_usa/usa_<year>_<est>yr_<part>.csv"
+    source : "/Users/jspeiser/pums_entire_usa/small_<year>_<est>yr_<part>.csv"
     source_vars:
         year:
             start: 2010
@@ -16,9 +16,10 @@ global:
     # type must be the original name of the column (before rename)
     type:
         occp02 : "str"
+        naicsp02: "str"
+        naicsp07: "str"
         occp10 : "str"
-        POWSP: "str"
-
+        ST: "str"
 
     POWPUMA:
         ifmissing: "XXXXX"

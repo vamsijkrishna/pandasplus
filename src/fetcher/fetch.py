@@ -6,15 +6,15 @@ from src.pipeline.exceptions import InvalidSettingException
 from src.pipeline.consts import ENV_FTP_HOST, ENV_FTP_USER, ENV_FTP_PASSWORD, FTP_PATHS, WEB_PATHS
 from src.pipeline.settings_helper import get_var
 
-def grab_if_needed(file_path, gconf):
+def grab_if_needed(file_path, gconf, var_map):
     if not os.path.isfile(file_path):
         # need to download the file from source if possible
-        web_paths =  gconf[WEB_PATHS] #get_var(gconf, WEB_PATHS, optional=True)
-        print "web_paths=", web_paths
-        if web_paths:
-            print "Downloading copy from URL ..."
-            _do_http(file_path, web_paths)
-        elif FTP_PATHS in gconf:
+        # web_paths =  gconf[WEB_PATHS] #get_var(gconf, WEB_PATHS, optional=True)
+        # print "web_paths=", web_paths
+        # if web_paths:
+            # print "Downloading copy from URL ..."
+            # _do_http(file_path, web_paths)
+        if FTP_PATHS in gconf:
             print "We do not have a local copy of %s, downloading from FTP..." % (file_path)
             ftp_host = os.environ.get(ENV_FTP_HOST)
             ftp_user = os.environ.get(ENV_FTP_USER)
@@ -25,6 +25,8 @@ def grab_if_needed(file_path, gconf):
             parsed_filename = os.path.basename(file_path)
             print file_path, parsed_filename
             server_path = _get_ftp_path(file_path, gconf)
+            for var, val in var_map.items():
+                server_path = server_path.replace("<{}>".format(var), val)
             _do_ftp(ftp_host, ftp_user, ftp_passwd, server_path, parsed_filename, file_path)
     else:
         print "We already have %s - not going to server." % (file_path)

@@ -305,12 +305,6 @@ class Builder(BaseBuilder):
         new_file_path = os.path.abspath(os.path.join(output_path, file_name))
         return new_file_path
 
-    def _import_to_db(self, file_path):
-        should_import = self._get_config([GLOBAL, DB_IMPORT], optional=True, default=False)
-        if should_import:
-            print "Preparing to import to database..."
-            _importer(file_path)
-
     def _crossproduct(self, df, depths):
         ''' Given a dictionary of Column => Nesting Length, generate all possible PK combinations '''
         my_nesting = []

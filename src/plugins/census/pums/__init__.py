@@ -21,18 +21,11 @@ def process(df, settings=None, pk=[], var_map={}):
 
 def _post_process(df, settings, pk, var_map={}):
     print "PK=", pk
-    naics02, soc00 = "naicsp02", "socp00"
 
-    old_school_mode = (int(var_map["year"]) - int(var_map["est"]) + 1) <= 2007
-
-    if naics02 in pk:
-        print "Converting NAICS codes..."
-        df = naics_convert(df, settings[VALUE], old_school_mode)
-        pk[pk.index(naics02)] = "naicsp07"
-    if soc00 in pk:
-        print "Converting SOC codes..."
-        df = occ_convert(df, settings[VALUE], old_school_mode)
-        pk[pk.index(soc00)] = "socp10"
+    df = naics_convert(df, var_map)
+    df = occ_convert(df, var_map)
+    # TODO: PK update
+    # pk[pk.index(soc00)] = "socp10"
     return df, pk
 
 def _replace(tdf, col, val1, val2):
@@ -46,28 +39,28 @@ def _prepare(df, settings=None, pk=[]):
     df = df[(df.AGEP >= 16) & (df.WAGP > 0)].copy()
     to_replace = ["naicsp02", "naicsp07", "socp00", "socp10"]
     for col in to_replace:
-        df.loc[df[col].isin(['N.A.//', 'N.A.']), col] = np.nan
+        df.loc[df[col].isin(['N.A.////', 'N.A.//', 'N.A.']), col] = np.nan
 
-    df.loc[df.POWSP.str.len() == 0, 'POWSP'] = None
-    df.loc[df.POWSP.notnull(), 'POWSP'] = df[df.POWSP.notnull()].POWSP.astype(int).astype(str).str.zfill(2)
-    df.loc[df.POWSP.isnull(), 'POWSP'] = 'XX'
+    df.loc[df.ST.str.len() == 0, 'ST'] = None
+    df.loc[df.ST.notnull(), 'ST'] = df[df.ST.notnull()].ST.astype(int).astype(str).str.zfill(2)
+    df.loc[df.ST.isnull(), 'ST'] = 'XX'
 
     # df.loc[df.POWPUMA.str.len() == 0, 'POWPUMA'] = None
-    df.loc[df.POWPUMA.notnull(), 'POWPUMA'] = df[df.POWPUMA.notnull()].POWPUMA.astype(int).astype(str).str.zfill(5)
-    df.loc[df.POWPUMA.isnull(), 'POWPUMA'] = 'XXXXX'
-
+    df.loc[df.PUMA.notnull(), 'PUMA'] = df[df.PUMA.notnull()].PUMA.astype(int).astype(str).str.zfill(5)
+    df.loc[df.PUMA.isnull(), 'PUMA'] = 'XXXXX'
     # if "geo" in pk:
     return df
 
 def _convert_pumas(df, pk, var_map):
     # TODO: only need to do this if we have a geography in the PK
-    if "POWPUMA00" in df.columns and "POWPUMA10":
-        # It's clear what is what.
-        df = puma_converter.update_puma(df, "POWPUMA00")
-    elif "POWPUMA" in df.columns and not "POWPUMA00" in df.columns and not "POWPUMA10" in df.columns:
+    if "PUMA00" in df.columns and "PUMA10":
+        raise Exception("TODO!")
+    elif "PUMA" in df.columns and not "PUMA00" in df.columns and not "PUMA10" in df.columns:
         # -- only need to run update IFF year < 2012
         if int(var_map["year"]) < 2012:
-            df = puma_converter.update_puma(df, "POWPUMA")
+            # df = puma_converter.update_puma(df, "PUMA")
+            df['geo'] = df.ST + df.PUMA
+            df = puma_converter.update_puma(df, "geo")
         else:
             print "NO PUMA conversion required...simply renaming column..."
             df.rename(columns={"POWPUMA": "POWPUMA10"}, inplace=True)

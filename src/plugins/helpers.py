@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-    Helpers
-    ~~~~~~~
-    
-"""
-
 ''' Import statements '''
 import sys, bz2, gzip, zipfile,  os
 import rarfile
@@ -27,6 +21,19 @@ def get_env_variable(var_name, default=-1):
 def d(x):
   return Decimal(x).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
 
+def smart_try(Opener, file, file_path_no_ext, tries):
+    try:
+        file = Opener.open(file, file_path_no_ext + tries.pop())
+    except:
+        if tries:
+            return smart_try(Opener, file, file_path_no_ext, tries)
+        else:
+            filelist = file.filelist
+            for f in filelist:
+                if file_path_no_ext.lower() in f.filename.lower():
+                    return file.open(f.filename)
+    return file
+
 def get_file(full_path):
     file_name = basename(full_path)
     file_path_no_ext, file_ext = splitext(file_name)
@@ -45,11 +52,12 @@ def get_file(full_path):
     except IOError:
         return None
     
+    kinds = ['', '.txt', '.csv', '.tsv']
+
     if file_ext == '.zip':
-        file = zipfile.ZipFile.open(file, file_path_no_ext)
+        file = smart_try(zipfile.ZipFile, file, file_path_no_ext, kinds)
     elif file_ext == '.rar':
-        file = rarfile.RarFile.open(file, file_path_no_ext + '.csv')
-    
+        file = smart_try(rarfile.RarFile, file, file_path_no_ext, kinds)
     # print "Reading from file", file_name
     return file
 
