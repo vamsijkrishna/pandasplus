@@ -11,7 +11,6 @@ from src.plugins.census.pums import puma_converter
 def process(df, settings=None, pk=[], var_map={}):
     print "SCHL" in df.columns
 
-
     df = _prepare(df, settings, pk)
     df = _convert_pumas(df, pk, var_map)
     df, pk = _post_process(df, settings, pk, var_map=var_map)
@@ -37,9 +36,10 @@ def _prepare(df, settings=None, pk=[]):
     # -- FIRST filter out anyone under the age of 16
     #    and any wage not greater than 0.
     df = df[(df.AGEP >= 16) & (df.WAGP > 0)].copy()
-    to_replace = ["naicsp02", "naicsp07", "socp00", "socp10"]
+    to_replace = ["naicsp02", "naicsp07", "naicsp12", "socp00", "socp10"]
     for col in to_replace:
-        df.loc[df[col].isin(['N.A.////', 'N.A.//', 'N.A.']), col] = np.nan
+        if col in df.columns:
+            df.loc[df[col].isin(['N.A.////', 'N.A.//', 'N.A.']), col] = np.nan
 
     df.loc[df.ST.str.len() == 0, 'ST'] = None
     df.loc[df.ST.notnull(), 'ST'] = df[df.ST.notnull()].ST.astype(int).astype(str).str.zfill(2)

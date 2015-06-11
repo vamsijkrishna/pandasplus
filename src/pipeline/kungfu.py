@@ -46,6 +46,8 @@ def process_operation(df, colname, settings, agg=None, pk=[], var_map={}):
         df[colname] = df[colname].astype(types[t])
     elif settings[TYPE] == MAP:
         mymap = settings[MAP]
+        if isinstance(mymap, str):
+            mymap = eval(mymap)
         target = settings[TARGET]
         df[colname] = df[target].map(mymap)
     elif settings[TYPE] == COND_MAP:
@@ -126,4 +128,11 @@ def process_operation(df, colname, settings, agg=None, pk=[], var_map={}):
     elif settings[TYPE] == FRAME_FUNC:
         func = str_to_func(settings[FUNC])
         df = func(df, settings, pk=pk, var_map=var_map)
+    elif settings[TYPE] == CONCAT_AND_FILL:
+        if ZFILL in settings:
+            df[colname] = df[colname].astype(str).str.zfill(settings[ZFILL])
+        if PREFIX in settings:
+            df[colname] = settings[PREFIX] + df[colname]
+        if POSTFIX in settings:
+            df[colname] = df[colname] + settings[POSTFIX]
     return df

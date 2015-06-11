@@ -11,6 +11,9 @@ import pandas as pd
 import bz2
 import StringIO
 
+import pandas.io.sql
+# from src.pipeline.db import insert_monkey
+# pandas.io.sql.SQLTable.insert = insert_monkey
 
 
 class BaseBuilder(object):
@@ -41,7 +44,7 @@ class BaseBuilder(object):
             raise InvalidSettingException("Couldn't find %s in %s" % (name, setts))
         return default
 
-    def _output_str(self, var_map=None):
+    def _output_str(self, var_map={}):
         output_path = self._get_config([GLOBAL, OUTPUT])
         if var_map:
             for var, val in var_map.items():
@@ -58,7 +61,8 @@ class BaseBuilder(object):
             print "Attempting file and (if needed) FTP check", output_path
             for var, val in var_map.items():
                 file_path = file_path.replace("<{}>".format(var), val)
-            fetch.grab_if_needed(file_path, gconf, var_map)
+            return fetch.grab_if_needed(file_path, gconf, var_map)
+        return file_path
 
     def _check_hdf_cache(self, input_file, var_map):
         output_path = self._output_str(var_map=var_map)
@@ -81,6 +85,8 @@ class BaseBuilder(object):
         delim = self._get_config([GLOBAL, SEPERATOR], optional=True, default=";")
         dec = self._get_config([GLOBAL, DECIMAL], optional=True, default=",")
         encoding = self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
+        if encoding == False:
+            encoding = None
         columns = self._get_config([GLOBAL, COLUMNS], optional=True)
         na_values = self._get_config([GLOBAL, NA_VALUES], optional=True)
 
@@ -89,14 +95,16 @@ class BaseBuilder(object):
             df = df[columns].copy()
         return df
 
-    def _to_df(self, input_file, use_cache=True, var_map=None, save_to_cache=True):
+    def _to_df(self, input_file, use_cache=True, var_map={}, save_to_cache=True):
         hdf_df, target = self._check_hdf_cache(input_file, var_map)
         if hdf_df is not False and use_cache:
             print "Reading from HDF file..."
             return hdf_df
 
-        self._check_file(input_file, var_map)
+        print "looking here", input_file
+        input_file = self._check_file(input_file, var_map)
         print "Opening file..."
+        print input_file, "HERE??"
         input_file = get_file(input_file)
         df = self._file_to_df(input_file)
         if use_cache and save_to_cache:
@@ -105,7 +113,7 @@ class BaseBuilder(object):
 
         return df
 
-    def _str_save(self, table_name, tbl, var_map=None):
+    def _str_save(self, table_name, tbl, var_map={}):
         print "** In memory save!"
         output = StringIO.StringIO()
         encoding = "utf-8-sig"
@@ -113,14 +121,35 @@ class BaseBuilder(object):
         output.seek(0)
         self.preview[table_name] = output
 
-    def _import_to_db(self, file_path, table_name, cols):
+    def _import_to_db(self, df, file_path, table_name, cols):
         should_import = self._get_config([GLOBAL, DB_IMPORT], optional=True, default=False)
         if should_import:
+            
             print "Preparing to import to database..."
-            table_name = self._get_config([GLOBAL, NAME]) + "_" + table_name
+            joiner = "." if self._get_config([GLOBAL, USE_SCHEMA], optional=True) else "_"
+            table_name = self._get_config([GLOBAL, NAME]) + joiner + table_name
             database_settings = self._get_config([GLOBAL, DB_SETTINGS])
-            db.write_table(file_path, table_name, cols, database_settings)
+            db.make_schema(df, table_name, database_settings)
+            encoding = self._get_config([GLOBAL, ENCODING], default="utf-8", optional=True)
+            db.write_table(file_path, table_name, cols, database_settings, encoding)
             print "** DB import complete..."
+
+    # todo refactor
+    # def _import_to_db(self, table_name, df):
+    #     from sqlalchemy import create_engine
+    #     should_import = self._get_config([GLOBAL, DB_IMPORT], optional=True, default=False)
+    #     if should_import:
+    #         print "Preparing to import to database..."
+    #         schema_name = self._get_config([GLOBAL, NAME])
+    #         database_settings = self._get_config([GLOBAL, DB_SETTINGS])
+    #         user = database_settings[USER]
+    #         pw = os.environ.get(database_settings[PW_ENV_VAR], None)
+    #         host = database_settings[HOST]
+    #         dbname = database_settings[DB_NAME]
+    #         con_url = 'postgresql://{}:{}@{}/{}'.format(user, pw, host, dbname)
+    #         engine = create_engine(con_url, pool_recycle=3600)
+    #         df.to_sql(table_name, engine, if_exists="append", chunksize=20000, index=False, schema=schema_name)
+    #         print "** DB import complete..."
 
     def save(self, table_name, tbl, var_map=None):
         print "** Saving", table_name, "..."
@@ -139,7 +168,11 @@ class BaseBuilder(object):
             # file_name = table_name + ".tsv.bz2"
             file_name = "{}_{}.tsv".format(name, table_name)
             new_file_path = os.path.abspath(os.path.join(output_path, file_name))
-            encoding = "utf-8-sig" #self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
+            encoding = self._get_config([GLOBAL, ENCODING], optional=True, default="utf-8-sig")
+            if not encoding:
+                encoding=None
             tbl.to_csv(new_file_path, sep="\t", index=False, encoding=encoding)
             print "** Save complete."
-            self._import_to_db(new_file_path, table_name, tbl.columns)
+            
+            self._import_to_db(tbl, new_file_path, table_name, tbl.columns)
+            

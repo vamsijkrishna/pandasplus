@@ -180,8 +180,17 @@ class Builder(BaseBuilder):
                 self._run_helper(df, var=curr)
                 curr += step
 
-    def _run_helper(self, df, var_map=None):
+    def _run_helper(self, df, var_map={}):
         print "Starting!"
+
+        if self._get_config([GLOBAL, STRIP_COL_WHITESPACE], optional=True):
+            print "Stripping whitespace from column names..."
+            df.columns = [col.strip() for col in df.columns]
+        force_upper = self._get_config([GLOBAL, FORCE_UPPER], optional=True)
+        if force_upper:
+            print "Forcing columns into uppercase..."
+            to_exclude = [] if not EXCLUDE in force_upper else force_upper[EXCLUDE]
+            df.columns = [col if col in to_exclude else col.upper() for col in df.columns]
 
         print "Renaming DF columns..."
         df = self._apply_renames(df)

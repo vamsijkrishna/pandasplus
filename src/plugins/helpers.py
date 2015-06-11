@@ -4,7 +4,7 @@ import sys, bz2, gzip, zipfile,  os
 import rarfile
 from decimal import Decimal, ROUND_HALF_UP
 from os.path import splitext, basename, exists
-
+from fuzzywuzzy import process
 '''
     Used for finding environment variables through configuration
     if a default is not given, the site will raise an exception
@@ -32,9 +32,14 @@ def smart_try(Opener, file, file_path_no_ext, tries):
             for f in filelist:
                 if file_path_no_ext.lower() in f.filename.lower():
                     return file.open(f.filename)
+            # as a last resort, try fuzzy matching
+            choices = [f.filename for f in filelist]
+            fname, pct = process.extractOne(file_path_no_ext, choices)
+            return file.open(fname)
     return file
 
 def get_file(full_path):
+    print "FULL=", full_path
     file_name = basename(full_path)
     file_path_no_ext, file_ext = splitext(file_name)
 
@@ -55,7 +60,10 @@ def get_file(full_path):
     kinds = ['', '.txt', '.csv', '.tsv']
 
     if file_ext == '.zip':
-        file = smart_try(zipfile.ZipFile, file, file_path_no_ext, kinds)
+        file_opened = smart_try(zipfile.ZipFile, file, file_path_no_ext, kinds)
+        if file == file_opened:
+            raise Exception("Could not get single file handle")
+        file = file_opened
     elif file_ext == '.rar':
         file = smart_try(rarfile.RarFile, file, file_path_no_ext, kinds)
     # print "Reading from file", file_name

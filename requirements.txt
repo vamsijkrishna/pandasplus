@@ -13,5 +13,7 @@ rarfile==2.6
 six==1.9.0
 tables==3.1.1
 sqlalchemy
+fuzzywuzzy
+python-Levenshtein
 # for postgres
 psycopg2

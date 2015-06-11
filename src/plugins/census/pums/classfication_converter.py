@@ -49,7 +49,7 @@ naics_12_direct_map = {x[NAICS_07] : x[NAICS_12] for x in naics_12_direct_map}
 xforms = {SOC_00: SOC_10, NAICS_02: NAICS_07, NAICS_07: NAICS_12}
 
 def get_soc_mode(var_map):
-    year, est = map(int, [var_map["year"], var_map["est"])
+    year, est = map(int, [var_map["year"], var_map["est"]])
 
     if year >= 2012:
         return SOC_10
@@ -189,45 +189,46 @@ def handle_class(df, vintages, standard):
             del df[vintage]
     return df
 
-def naics_convert(df, var_map):
-    # TEMPORARY!!
-    if not "naicsp" in df.columns:
-        df = handle_naicsp(df, ["02", "07", "12"], , "naicsp")
-    return df
-
 # def naics_convert(df, var_map):
-#     df.rename(columns={"naicsp07": NAICS_07, "naicsp02": NAICS_02}, inplace=True)
-#     print df.columns
-
-#     year = int(var_map["year"])
-#     est = int(var_map["est"])
-#     school_mode = is_old_school(var_map)
-#     naics_mode = get_naics_mode(var_map)
-
-#     print "BEFORE"
-#     print; print;
-#     print df
-#     print; print;
-
-#     if NAICS_02 in df.columns:
-#         print "Spotted NAICSP02 in columns...first convert this."
-#         df = _convert(df, NAICS_02, school_mode)
-#         df = _convert_07_to_12(df)
-#         df.drop(NAICS_02, axis=1, inplace=True)
-#     else:
-#         print "*** single NAICSP ****"
-#         df.rename(columns={"NAICSP": naics_mode}, inplace=True)
-#         if naics_mode == NAICS_02:
-#             df = _convert(df, NAICS_02, school_mode)
-#             df = _convert_07_to_12(df)
-#             df.drop(NAICS_02, axis=1, inplace=True)
-#         elif naics_mode == NAICS_07:
-#             df = _convert_07_to_12(df)
-#             # df.drop(NAICS_07, axis=1, inplace=True)
-#         elif naics_mode == NAICS_12:
-#             pass # Nothing to do!
-
+#     # TEMPORARY!!
+#     if not "naicsp" in df.columns:
+#         raise Exception("HELLO")
+#         df = handle_naicsp(df, ["02", "07", "12"], "naicsp")
 #     return df
+
+def naics_convert(df, var_map):
+    df.rename(columns={"naicsp07": NAICS_07, "naicsp02": NAICS_02}, inplace=True)
+    print df.columns
+
+    year = int(var_map["year"])
+    est = int(var_map["est"])
+    school_mode = is_old_school(var_map)
+    naics_mode = get_naics_mode(var_map)
+
+    print "BEFORE"
+    print; print;
+    print df
+    print; print;
+
+    if NAICS_02 in df.columns:
+        print "Spotted NAICSP02 in columns...first convert this."
+        df = _convert(df, NAICS_02, school_mode)
+        df = _convert_07_to_12(df)
+        df.drop(NAICS_02, axis=1, inplace=True)
+    else:
+        print "*** single NAICSP ****"
+        df.rename(columns={"NAICSP": naics_mode}, inplace=True)
+        if naics_mode == NAICS_02:
+            df = _convert(df, NAICS_02, school_mode)
+            df = _convert_07_to_12(df)
+            df.drop(NAICS_02, axis=1, inplace=True)
+        elif naics_mode == NAICS_07:
+            df = _convert_07_to_12(df)
+            # df.drop(NAICS_07, axis=1, inplace=True)
+        elif naics_mode == NAICS_12:
+            pass # Nothing to do!
+
+    return df
 
 if __name__ == '__main__':
     moi = pd.DataFrame({"x": [100], NAICS_07: ["4431M"], })
