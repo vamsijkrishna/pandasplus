@@ -5,7 +5,7 @@ from classfication_converter import get_path, COL_RATE
 PUMA00 = 'PUMA00'
 PUMA10 = 'PUMA10'
 UNKNOWN = 'XXXXXXX'
-GEO = 'geo'
+
 POWSP= 'POWSP'
 
 puma_map = pd.read_csv(get_path('data/PUMA_00_to_10.csv'), converters={"POWSP": str, "PUMA00": str, "PUMA10": str})
