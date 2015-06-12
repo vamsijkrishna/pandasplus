@@ -9,19 +9,23 @@ from src.plugins.census.pums import puma_converter
 weight_col = "PWGTP"
 SUMLEVEL = 'sumlevel'
 GEO = 'geo_id'
+PUMA = 'puma'
+STATE = 'state'
 
 def lookup_sumlevel_by_name(name):
-    sumlevel_map = {"puma" : "79500US", "state": "04000US"}
+    sumlevel_map = {PUMA : "79500US", STATE: "04000US"}
     if name in sumlevel_map:
         return sumlevel_map[name]
     raise InvalidSettingException("Unknown sumlevel: {}".format(name))
 
 def process(df, settings=None, pk=[], var_map={}):
     print "SCHL" in df.columns
+    print "AGEP" in df.columns, " HAS AGEP?"
+    print df.columns
 
     df = _prepare(df, settings, pk)
     # df = _convert_pumas(df, pk, var_map)
-    # df, pk = _post_process(df, settings, pk, var_map=var_map)
+    df, pk = _post_process(df, settings, pk, var_map=var_map)
     df = statistics.compute(df, settings, pk)
 
     return df
@@ -31,6 +35,7 @@ def _post_process(df, settings, pk, var_map={}):
 
     df = naics_convert(df, var_map)
     df = occ_convert(df, var_map)
+    
     # TODO: PK update
     # pk[pk.index(soc00)] = "socp10"
     return df, pk
@@ -60,8 +65,9 @@ def _prepare(df, settings=None, pk=[]):
     df.loc[df.ST.isnull(), 'ST'] = sumlevel + 'XX'
 
     # df.loc[df.POWPUMA.str.len() == 0, 'POWPUMA'] = None
-    df.loc[df.PUMA.notnull(), GEO] = df[GEO] + df.PUMA.astype(int).astype(str).str.zfill(5)
-    df.loc[df.PUMA.isnull(), GEO] = df[GEO] + 'XXXXX'
+    if sumlevel_name == PUMA:
+        df.loc[df.PUMA.notnull(), GEO] = df[GEO] + df.PUMA.astype(int).astype(str).str.zfill(5)
+        df.loc[df.PUMA.isnull(), GEO] = df[GEO] + 'XXXXX'
     # if "geo" in pk:
     return df
 

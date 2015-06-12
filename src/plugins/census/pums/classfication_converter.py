@@ -6,6 +6,7 @@ from numpy.random import choice
 COL_RATE = "Total Conversion Rate"
 SOC_00 = "socp00"
 SOC_10 = "socp10"
+SOC_12 = "socp12"
 
 NAICS_02 = "NAICSP02"
 NAICS_07 = "NAICSP07"
@@ -23,6 +24,10 @@ soc_direct_map = pd.read_csv(get_path('data/SOC_00_to_10_direct.csv'), converter
 soc_direct_map = soc_direct_map.to_dict(orient="records")
 soc_direct_map = {x[SOC_00] : x[SOC_10] for x in soc_direct_map}
 
+soc12_direct_map = pd.read_csv(get_path('data/SOC_10_to_12_direct.csv'), converters={"SOCP12": str, "SOCP10": str})
+soc12_direct_map = soc12_direct_map.to_dict(orient="records")
+soc12_direct_map = {x[SOC_10] : x[SOC_12] for x in soc12_direct_map}
+
 naics_direct_map = pd.read_csv(get_path('data/NAICS_02_to_07_direct.csv'), converters={"NAICSP02": str, "NAICSP07": str})
 naics_direct_map = naics_direct_map.to_dict(orient="records")
 naics_direct_map = {x[NAICS_02] : x[NAICS_07] for x in naics_direct_map}
@@ -33,6 +38,14 @@ soc_ba_m_map = pd.read_csv(get_path('data/SOC_00_to_10_BA_M.csv'), converters={"
 soc_ba_f_map = pd.read_csv(get_path('data/SOC_00_to_10_BA_F.csv'), converters={"SOCP00": str, "SOCP10": str})
 soc_adv_m_map = pd.read_csv(get_path('data/SOC_00_to_10_ADV_M.csv'), converters={"SOCP00": str, "SOCP10": str})
 soc_adv_f_map = pd.read_csv(get_path('data/SOC_00_to_10_ADV_F.csv'), converters={"SOCP00": str, "SOCP10": str})
+
+soc12_hs_m_map = pd.read_csv(get_path('data/SOC_10_to_12_HS_M.csv'), converters={"SOCP12": str, "SOCP10": str})
+soc12_hs_f_map = pd.read_csv(get_path('data/SOC_10_to_12_HS_F.csv'), converters={"SOCP12": str, "SOCP10": str})
+soc12_ba_m_map = pd.read_csv(get_path('data/SOC_10_to_12_BA_M.csv'), converters={"SOCP12": str, "SOCP10": str})
+soc12_ba_f_map = pd.read_csv(get_path('data/SOC_10_to_12_BA_F.csv'), converters={"SOCP12": str, "SOCP10": str})
+soc12_adv_m_map = pd.read_csv(get_path('data/SOC_10_to_12_ADV_M.csv'), converters={"SOCP12": str, "SOCP10": str})
+soc12_adv_f_map = pd.read_csv(get_path('data/SOC_10_to_12_ADV_F.csv'), converters={"SOCP12": str, "SOCP10": str})
+
 
 naics_hs_m_map = pd.read_csv(get_path('data/NAICS_02_to_07_HS_M.csv'), converters={"NAICSP02": str, "NAICSP07": str})
 naics_hs_f_map = pd.read_csv(get_path('data/NAICS_02_to_07_HS_F.csv'), converters={"NAICSP02": str, "NAICSP07": str})
@@ -46,12 +59,13 @@ naics_12_direct_map = pd.read_csv(get_path('data/NAICS_07_to_12_direct.csv'), co
 naics_12_direct_map = naics_12_direct_map.to_dict(orient="records")
 naics_12_direct_map = {x[NAICS_07] : x[NAICS_12] for x in naics_12_direct_map}
 
-xforms = {SOC_00: SOC_10, NAICS_02: NAICS_07, NAICS_07: NAICS_12}
+xforms = {SOC_00: SOC_10, SOC_10: SOC_12, NAICS_02: NAICS_07, NAICS_07: NAICS_12}
 
 def get_soc_mode(var_map):
     year, est = map(int, [var_map["year"], var_map["est"]])
-
     if year >= 2012:
+        return SOC_12
+    elif year >= 2009:
         return SOC_10
     else:
         return SOC_00
@@ -94,20 +108,21 @@ def randomizer(code, rule_map, start_col):
 def _convert(df, start_col, school_mode):
     ''' Use conversion tables to transform across classifications '''
 
-    if not school_mode:
-        HS_VAL = 20
-        BA_VAL = 21
-        ADV_VAL = 22
-    else: # -- use the 2007 classification system
-        HS_VAL = 12
-        BA_VAL = 13
-        ADV_VAL = 14
+    HS_VAL, BA_VAL, ADV_VAL = [20, 21, 22] if not school_mode else [12, 13, 14]
 
     if not start_col in df.columns:
         raise Exception( start_col, "Not in", df.columns )
         return df
 
-    if start_col == SOC_00:
+    if start_col == SOC_10:
+        direct_map = soc12_direct_map
+        hs_m_map = soc12_hs_m_map
+        hs_f_map = soc12_hs_f_map
+        ba_m_map = soc12_ba_m_map
+        ba_f_map = soc12_ba_f_map
+        adv_m_map = soc12_adv_m_map
+        adv_f_map = soc12_adv_f_map
+    elif start_col == SOC_00:
         direct_map = soc_direct_map
         hs_m_map = soc_hs_m_map
         hs_f_map = soc_hs_f_map
@@ -115,7 +130,7 @@ def _convert(df, start_col, school_mode):
         ba_f_map = soc_ba_f_map
         adv_m_map = soc_adv_m_map
         adv_f_map = soc_adv_f_map
-    else:
+    elif start_col == NAICS_02:
         direct_map = naics_direct_map
         hs_m_map = naics_hs_m_map
         hs_f_map = naics_hs_f_map
@@ -123,10 +138,17 @@ def _convert(df, start_col, school_mode):
         ba_f_map = naics_ba_f_map
         adv_m_map = naics_adv_m_map
         adv_f_map = naics_adv_f_map
-
+    else:
+        raise Exception("BAD START COLUMN")
     # -- First apply direct transformation then split into groups
-    df.loc[df[start_col].isin(direct_map.keys()), start_col] = df[start_col].map(soc_direct_map)
+    df.loc[df[start_col].isin(direct_map.keys()), start_col] = df[start_col].map(direct_map)
 
+    print direct_map
+    print df.head()
+    print start_col
+    print df[start_col]
+    print df[start_col].isin(direct_map.keys())
+    # print "HEL" , df.loc[df[start_col].isin(direct_map.keys())]
     # -- Intelligently split the dataframe into six parts based on gender & edu
     HS = (df.SCHL <= HS_VAL)
     BA = (df.SCHL == BA_VAL)
@@ -169,15 +191,33 @@ def _convert_07_to_12(df):
     return df
 
 def occ_convert(df, var_map):
-
     school_mode = is_old_school(var_map)
     soc_mode = get_soc_mode(var_map)
 
-    df.rename(columns={"socp": soc_mode})
+    # TODO: VERIFY: school_mode might need to vary for 5 year estimates
 
-    if soc_mode == SOC_00:
-        print "SOC00 conversion..."            
+    if SOC_00 in df.columns:
+        print "Spotted SOCP00 in columns...first convert this."
         df = _convert(df, SOC_00, school_mode)
+        df = _convert(df, SOC_10, school_mode)
+        df.drop(SOC_00, axis=1, inplace=True)
+    elif SOC_10 in df.columns:
+        print "Spotted SOCP10 in columns...first convert this."
+        print df, "HERE!!!"
+        df = _convert(df, SOC_10, school_mode)
+        df.drop(SOC_10, axis=1, inplace=True)
+    else:
+        print "*** single SOCP ****"
+        df.rename(columns={"SOCP": soc_mode}, inplace=True)
+        if soc_mode == NAICS_02:
+            df = _convert(df, SOC_00, school_mode)
+            df = _convert(df, SOC_10, school_mode)
+            df.drop(SOC_00, axis=1, inplace=True)
+        elif soc_mode == SOC_10:
+            df = _convert(df, SOC_10, school_mode)
+            df.drop(SOC_10, axis=1, inplace=True)
+        elif soc_mode == SOC_12:
+            pass # Nothing to do!
 
     return df
 
@@ -188,13 +228,6 @@ def handle_class(df, vintages, standard):
             df.loc[df[vintage].notnull(), standard] = df[vintage]
             del df[vintage]
     return df
-
-# def naics_convert(df, var_map):
-#     # TEMPORARY!!
-#     if not "naicsp" in df.columns:
-#         raise Exception("HELLO")
-#         df = handle_naicsp(df, ["02", "07", "12"], "naicsp")
-#     return df
 
 def naics_convert(df, var_map):
     df.rename(columns={"naicsp07": NAICS_07, "naicsp02": NAICS_02}, inplace=True)
@@ -215,6 +248,10 @@ def naics_convert(df, var_map):
         df = _convert(df, NAICS_02, school_mode)
         df = _convert_07_to_12(df)
         df.drop(NAICS_02, axis=1, inplace=True)
+    elif NAICS_07 in df.columns:
+        print "Spotted NAICSP07 in columns...first convert this."
+        df = _convert_07_to_12(df)
+        df.drop(NAICS_07, axis=1, inplace=True)
     else:
         print "*** single NAICSP ****"
         df.rename(columns={"NAICSP": naics_mode}, inplace=True)
@@ -224,19 +261,25 @@ def naics_convert(df, var_map):
             df.drop(NAICS_02, axis=1, inplace=True)
         elif naics_mode == NAICS_07:
             df = _convert_07_to_12(df)
-            # df.drop(NAICS_07, axis=1, inplace=True)
+            df.drop(NAICS_07, axis=1, inplace=True)
         elif naics_mode == NAICS_12:
             pass # Nothing to do!
 
     return df
 
 if __name__ == '__main__':
+    print "Testing industry conversion..."
     moi = pd.DataFrame({"x": [100], NAICS_07: ["4431M"], })
     moi = pd.DataFrame({"x": [100,44], "NAICSP02": [np.nan, "451M"], "NAICSP07": ["32712", np.nan], "SEX":  [2,2], "SCHL": [10,10]})
-    # moi = pd.read_csv("/Users/jspeiser/pums_entire_usa/small_2010_5yr_a.csv", na_values=["N.A.////", "N.A.//"])
-    # moi.columns = [x.upper() for x in moi.columns]
-    # moi = moi[["PUMA", "naicsp02".upper(), "naicsp07".upper(), "SEX", "WAGP", "AGEP", "SCHL" ]]
-    # moi = moi[moi.WAGP> 0].copy()
     res = naics_convert(moi, {"year": 2010, "est": 5})
     print "Converted:"
+    print res
+    print "Testing occupation conversion..."
+    print
+    moi = pd.DataFrame({"x": [100,44], "socp00": [np.nan, "472020"], "socp10": ["472XXX", np.nan], "SEX":  [2,2], "SCHL": [10,10]})
+    print "Starting with"
+    print moi
+    print "####"
+    res = occ_convert(moi, {"year": 2006, "est": 3})
+    print "CONVERTED TO"
     print res
