@@ -35,7 +35,7 @@ def _post_process(df, settings, pk, var_map={}):
 
     df = naics_convert(df, var_map)
     df = occ_convert(df, var_map)
-    
+
     # TODO: PK update
     # pk[pk.index(soc00)] = "socp10"
     return df, pk
