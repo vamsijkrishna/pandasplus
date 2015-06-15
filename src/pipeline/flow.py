@@ -207,6 +207,11 @@ class Builder(BaseBuilder):
         for x,v in self.nan_rules.items():
             df[x] = df[x].fillna(v)
 
+        fillna_mode = self._get_config([GLOBAL, FILLNA, MODE], optional=True)
+        if fillna_mode:
+            fillval = self._get_config([GLOBAL, FILLNA, VALUE])
+            df = df.fillna(fillval, downcast='infer')
+
         print "Creating tables..."
         for table_name, setts in self.tables.items():
             mydf = df.copy()
@@ -226,10 +231,9 @@ class Builder(BaseBuilder):
 
             ''' If a transformation is altered by a table specific setting,
                 do not apply the transformation twice! '''
-            table_transform = gconf.keys()
+            table_transform = table_conf.keys() if table_conf else []
             global_transforms = gconf.keys()
             applied_gconf = {k:v for k,v in gconf.items() if k not in table_transform}
-
             mydf = self._computed_columns(applied_gconf, mydf, agg, pk, var_map)
             print "Agg=",agg
             mydf = self._computed_columns(table_conf, mydf, agg, pk, var_map)
