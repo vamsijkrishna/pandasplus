@@ -106,7 +106,15 @@ class BaseBuilder(object):
         return df
 
     def _multi_files_to_df(self, file_obj, archive_files, var_map={}):
+        '''
+        archive_files can either be a string representing a suffix or a list. If archive_files is
+        a string, all files within the zip with that suffix will be concatenated.
+        '''
         df = pd.DataFrame()
+        if isinstance(archive_files, str):
+            suffix = archive_files
+            archive_files = [filename for filename in file_obj.filelist if filename.endswith(suffix)]
+
         for filename in archive_files:
             filename = self.format_vars(filename, var_map)
             archive_fileobj = file_obj.open(filename)
