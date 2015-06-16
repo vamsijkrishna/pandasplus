@@ -38,7 +38,7 @@ def smart_try(Opener, file, file_path_no_ext, tries):
             return file.open(fname)
     return file
 
-def get_file(full_path):
+def raw_file_handle(full_path):
     print "FULL=", full_path
     file_name = basename(full_path)
     file_path_no_ext, file_ext = splitext(file_name)
@@ -57,6 +57,12 @@ def get_file(full_path):
     except IOError:
         return None
     
+    return file
+
+def get_file(full_path):
+    print "FULL=", full_path
+    file = raw_file_handle(full_path)
+
     kinds = ['', '.txt', '.csv', '.tsv']
 
     if file_ext == '.zip':

@@ -3,7 +3,7 @@ import re
 import itertools
 import os
 from sqlalchemy import create_engine
-from src.plugins.helpers import get_file
+from src.plugins.helpers import get_file, raw_file_handle
 from src.pipeline import db
 from src.fetcher import fetch
 
@@ -92,10 +92,20 @@ class BaseBuilder(object):
         # -- explicitly setting index_col to False forces
         #    pandas to not treat first column as an index
         index_col = self._get_config([GLOBAL, INDEX_COL], optional=True, default=False)
+        usecols = self._get_config([GLOBAL, USECOLS], optional=True, default=None)
+
         print na_values
-        df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce, na_values=na_values, index_col=index_col)
+        df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce, na_values=na_values, index_col=index_col, usecols=usecols)
         if columns:
             df = df[columns].copy()
+        return df
+
+    def _multi_files_to_df(self, file_obj, archive_files):
+        df = pd.DataFrame()
+        for filename in archive_files:
+            archive_fileobj = file_obj.open(filename)
+            tmpdf = self._file_to_df(archive_fileobj)
+            df = pd.concat([df, tmpdf])
         return df
 
     def _to_df(self, input_file, use_cache=True, var_map={}, save_to_cache=True):
@@ -106,10 +116,17 @@ class BaseBuilder(object):
 
         print "looking here", input_file
         input_file = self._check_file(input_file, var_map)
-        print "Opening file..."
-        print input_file, "HERE??"
-        input_file = get_file(input_file)
-        df = self._file_to_df(input_file)
+        print "Trying to open", input_file
+
+        archive_files = self._get_config([GLOBAL, ARCHIVE_FILES], optional=True)
+
+        if archive_files:
+            archive = raw_file_handle(input_file)
+            df = self._multi_files_to_df(archive, archive_files)
+        else:
+            input_file = get_file(input_file)
+            df = self._file_to_df(input_file)
+
         if use_cache and save_to_cache:
             print "Saving dataframe in HDF file..."
             df.to_hdf(target, HDF_CACHE, append=False)
