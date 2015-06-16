@@ -227,15 +227,15 @@ class Builder(BaseBuilder):
 
             ''' Do we need to add any computation before aggregating? '''
             table_conf = self._get_setting(TRANSFORM, setts, None)
-            gconf = self._get_config([GLOBAL, TRANSFORM], optional=True)
+            gconf = self._get_config([GLOBAL, TRANSFORM], optional=True, default={})
 
             ''' If a transformation is altered by a table specific setting,
                 do not apply the transformation twice! '''
             table_transform = table_conf.keys() if table_conf else []
-            global_transforms = gconf.keys()
+            global_transforms = gconf.keys() if gconf else []
             applied_gconf = {k:v for k,v in gconf.items() if k not in table_transform}
             mydf = self._computed_columns(applied_gconf, mydf, agg, pk, var_map)
-            print "Agg=",agg
+            print "Agg=",agg, mydf.columns
             mydf = self._computed_columns(table_conf, mydf, agg, pk, var_map)
             if "depths" in setts:
                 table = self._depth_combos(mydf, agg, pk, setts)

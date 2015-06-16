@@ -89,8 +89,11 @@ class BaseBuilder(object):
             encoding = None
         columns = self._get_config([GLOBAL, COLUMNS], optional=True)
         na_values = self._get_config([GLOBAL, NA_VALUES], optional=True)
-
-        df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce, na_values=na_values)
+        # -- explicitly setting index_col to False forces
+        #    pandas to not treat first column as an index
+        index_col = self._get_config([GLOBAL, INDEX_COL], optional=True, default=False)
+        print na_values
+        df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce, na_values=na_values, index_col=index_col)
         if columns:
             df = df[columns].copy()
         return df
