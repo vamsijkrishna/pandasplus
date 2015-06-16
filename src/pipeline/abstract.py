@@ -37,6 +37,11 @@ class BaseBuilder(object):
             mydata = mydata[n]
         return mydata
 
+    def format_vars(self, target, var_map):
+        for var, val in var_map.items():
+            target = target.replace("<{}>".format(var), val)
+        return target
+
     def _get_setting(self, name, setts, default=None, optional=True):
         if name in setts:
             return setts[name]
@@ -100,9 +105,10 @@ class BaseBuilder(object):
             df = df[columns].copy()
         return df
 
-    def _multi_files_to_df(self, file_obj, archive_files):
+    def _multi_files_to_df(self, file_obj, archive_files, var_map={}):
         df = pd.DataFrame()
         for filename in archive_files:
+            filename = self.format_vars(filename, var_map)
             archive_fileobj = file_obj.open(filename)
             tmpdf = self._file_to_df(archive_fileobj)
             df = pd.concat([df, tmpdf])
@@ -122,7 +128,7 @@ class BaseBuilder(object):
 
         if archive_files:
             archive = raw_file_handle(input_file)
-            df = self._multi_files_to_df(archive, archive_files)
+            df = self._multi_files_to_df(archive, archive_files, var_map)
         else:
             input_file = get_file(input_file)
             df = self._file_to_df(input_file)
