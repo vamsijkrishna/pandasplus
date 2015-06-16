@@ -113,7 +113,7 @@ class BaseBuilder(object):
         df = pd.DataFrame()
         if isinstance(archive_files, str):
             suffix = archive_files
-            archive_files = [filename for filename in file_obj.filelist if filename.endswith(suffix)]
+            archive_files = [f.filename for f in file_obj.filelist if f.filename.endswith(suffix)]
 
         for filename in archive_files:
             filename = self.format_vars(filename, var_map)
