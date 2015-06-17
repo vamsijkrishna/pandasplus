@@ -21,22 +21,22 @@ def get_env_variable(var_name, default=-1):
 def d(x):
   return Decimal(x).quantize(Decimal(".01"), rounding=ROUND_HALF_UP)
 
-def smart_try(Opener, file, file_path_no_ext, tries):
+def smart_try(Opener, file_obj, file_path_no_ext, tries):
     try:
-        file = Opener.open(file, file_path_no_ext + tries.pop())
+        file_obj = Opener.open(file_obj, file_path_no_ext + tries.pop())
     except:
         if tries:
-            return smart_try(Opener, file, file_path_no_ext, tries)
-        else:
-            filelist = file.filelist
+            return smart_try(Opener, file_obj, file_path_no_ext, tries)
+        elif file_obj:
+            filelist = file_obj.filelist
             for f in filelist:
                 if file_path_no_ext.lower() in f.filename.lower():
-                    return file.open(f.filename)
+                    return file_obj.open(f.filename)
             # as a last resort, try fuzzy matching
             choices = [f.filename for f in filelist]
             fname, pct = process.extractOne(file_path_no_ext, choices)
-            return file.open(fname)
-    return file
+            return file_obj.open(fname)
+    return file_obj
 
 def raw_file_handle(full_path):
     print "FULL=", full_path
