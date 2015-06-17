@@ -1,7 +1,7 @@
 import pandas as pd
 
 from src.pipeline.exceptions import InvalidSettingException
-from src.pipeline.consts import VALUES
+from src.pipeline.consts import VALUES, COLUMN, NAME
 
 def compute(df, settings={}, pk=[]):
     weight_col = "PWGTP"
@@ -10,7 +10,8 @@ def compute(df, settings={}, pk=[]):
     df[count_value] = df[ weight_col ]
     if not VALUES in settings:
         raise InvalidSettingException("Must have PUMS values list")
-    values = settings[VALUES]
+    values_objs = settings[VALUES]
+    values = [val[COLUMN] for val in values_objs]
     num_wts = 80 + 1
 
     aggs = {c : pd.Series.sum for c in df.columns if weight_col in c}
@@ -66,7 +67,13 @@ def compute(df, settings={}, pk=[]):
     cols_to_keep += ["{}_moe".format(value) for value in values]
     to_drop = [c for c in df.columns if c not in cols_to_keep]
     df.drop(to_drop, axis=1, inplace=True)
-
+    # rename
+    renaming = {}
+    for val_dict in values_objs:
+        raw_name, output_name = val_dict[COLUMN], val_dict[NAME]
+        renaming["{}_wt".format(raw_name)] = output_name
+        renaming["{}_moe".format(raw_name)] = "{}_moe".format(output_name)
+    df.rename(columns=renaming, inplace=True)
     return df
 
 if __name__ == '__main__':
