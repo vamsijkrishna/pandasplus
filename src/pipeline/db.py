@@ -70,6 +70,7 @@ def write_table(file_path, table_name, cols, database_settings, encoding):
     conn = psycopg2.connect("dbname='{}' user='{}' host='{}' password='{}'".format(dbname, user, host, pw))
     cur = conn.cursor()
 
+    cols = ['"{}"'.format(col) for col in cols]
     cols = ",".join(cols)
     f = open(file_path)
     print "Importing from", file_path, "..."
