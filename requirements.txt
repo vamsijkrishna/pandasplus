@@ -1,8 +1,6 @@
 Cython==0.21.2
 PyYAML==3.11
 click==3.3
-mysql-connector-python==1.2.2
-mysql-utilities==1.4.3
 numexpr==2.4
 numpy==1.9.1
 pandas==0.16.1
@@ -17,3 +15,6 @@ fuzzywuzzy
 python-Levenshtein
 # for postgres
 psycopg2
+# for mysql
+#mysql-connector-python==1.2.2
+#mysql-utilities==1.4.3
