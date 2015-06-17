@@ -130,7 +130,10 @@ def process_operation(df, colname, settings, agg=None, pk=[], var_map={}):
         df = func(df, settings, pk=pk, var_map=var_map)
     elif settings[TYPE] == CONCAT_AND_FILL:
         if ZFILL in settings:
-            df[colname] = df[colname].astype(str).str.zfill(settings[ZFILL])
+            size = settings[ZFILL]
+            df[colname] = df[colname].astype(str).str.strip()
+            df[colname] = df[colname].str.pad(size)
+            df[colname] = df[colname].str.replace(' ', '0')
         if PREFIX in settings:
             df[colname] = settings[PREFIX] + df[colname]
         if POSTFIX in settings:
