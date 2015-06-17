@@ -1,16 +1,18 @@
 import pandas as pd
 
+from src.pipeline.exceptions import InvalidSettingException
+from src.pipeline.consts import VALUES
+
 def compute(df, settings={}, pk=[]):
     weight_col = "PWGTP"
 
     count_value = "num_ppl"
     df[count_value] = df[ weight_col ]
-
-    values = ["WAGP", "AGEP"]
-    # value = "WAGP"
+    if not VALUES in settings:
+        raise InvalidSettingException("Must have PUMS values list")
+    values = settings[VALUES]
     num_wts = 80 + 1
 
-    # df = df[(df[value] > 0) & (df.POWSP == "39")].copy()
     aggs = {c : pd.Series.sum for c in df.columns if weight_col in c}
     aggs[count_value] = pd.Series.sum
 
@@ -59,8 +61,12 @@ def compute(df, settings={}, pk=[]):
         df[se] = df[variance] ** 0.5
         df[moe] = df[se] * 1.645 # 90% confidence interval
 
-    cols_to_drop = [c for c in df.columns if "delta" in c or "PWGTP" in c or "_wt_" in c or "_se" in c or "_variance" in c]
-    df.drop(rwts + cols_to_drop, axis=1, inplace=True)
+    cols_to_keep = pk + ["num_ppl", "num_ppl_moe"]
+    cols_to_keep += ["{}_wt".format(value) for value in values]
+    cols_to_keep += ["{}_moe".format(value) for value in values]
+    to_drop = [c for c in df.columns if c not in cols_to_keep]
+    df.drop(to_drop, axis=1, inplace=True)
+
     return df
 
 if __name__ == '__main__':

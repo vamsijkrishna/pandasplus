@@ -32,13 +32,12 @@ def process(df, settings=None, pk=[], var_map={}):
 
 def _post_process(df, settings, pk, var_map={}):
     print "PK=", pk
-    needs_naics = "naics" in pk
-    needs_occ = "soc" in pk
+    needs_naics = "NAICSP12" in pk
+    needs_occ = "SOCP12" in pk
     if needs_naics:
         df = naics_convert(df, var_map)
     if needs_occ:
         df = occ_convert(df, var_map)
-
     return df, pk
 
 def _replace(tdf, col, val1, val2):

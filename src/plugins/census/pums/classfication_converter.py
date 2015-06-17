@@ -143,11 +143,12 @@ def _convert(df, start_col, school_mode):
     # -- First apply direct transformation then split into groups
     df.loc[df[start_col].isin(direct_map.keys()), start_col] = df[start_col].map(direct_map)
 
-    print direct_map
-    print df.head()
-    print start_col
-    print df[start_col]
-    print df[start_col].isin(direct_map.keys())
+    # print direct_map
+    # print df.head()
+    # print start_col
+    # print df[start_col]
+    # print df[start_col].isin(direct_map.keys())
+
     # print "HEL" , df.loc[df[start_col].isin(direct_map.keys())]
     # -- Intelligently split the dataframe into six parts based on gender & edu
     HS = (df.SCHL <= HS_VAL)
@@ -231,17 +232,17 @@ def handle_class(df, vintages, standard):
 
 def naics_convert(df, var_map):
     df.rename(columns={"naicsp07": NAICS_07, "naicsp02": NAICS_02}, inplace=True)
-    print df.columns
+    # print df.columns
 
     year = int(var_map["year"])
     est = int(var_map["est"])
     school_mode = is_old_school(var_map)
     naics_mode = get_naics_mode(var_map)
 
-    print "BEFORE"
-    print; print;
-    print df
-    print; print;
+    # print "BEFORE"
+    # print; print;
+    # print df
+    # print; print;
 
     if NAICS_02 in df.columns:
         print "Spotted NAICSP02 in columns...first convert this."
@@ -256,13 +257,16 @@ def naics_convert(df, var_map):
         print "*** single NAICSP ****"
         df.rename(columns={"NAICSP": naics_mode}, inplace=True)
         if naics_mode == NAICS_02:
+            print "Detected NAICS02...converting..."
             df = _convert(df, NAICS_02, school_mode)
             df = _convert_07_to_12(df)
             df.drop(NAICS_02, axis=1, inplace=True)
         elif naics_mode == NAICS_07:
+            print "Detected NAICS07. Converting to NAICS12..."
             df = _convert_07_to_12(df)
             df.drop(NAICS_07, axis=1, inplace=True)
         elif naics_mode == NAICS_12:
+            print "Nothing to do!"
             pass # Nothing to do!
 
     return df

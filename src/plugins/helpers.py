@@ -64,6 +64,8 @@ def get_file(full_path):
     file = raw_file_handle(full_path)
 
     kinds = ['', '.txt', '.csv', '.tsv']
+    file_name = basename(full_path)
+    file_path_no_ext, file_ext = splitext(file_name)
 
     if file_ext == '.zip':
         file_opened = smart_try(zipfile.ZipFile, file, file_path_no_ext, kinds)
