@@ -11,9 +11,8 @@ def compute(df, settings={}, pk=[]):
 
     count_value = "num_ppl"
     df[count_value] = df[ weight_col ]
-    if not VALUES in settings:
-        raise InvalidSettingException("Must have PUMS values list")
-    values_objs = settings[VALUES]
+
+    values_objs = settings[VALUES] if VALUES in settings else []
     values = [val[COLUMN] for val in values_objs]
     num_wts = 80 + 1
 

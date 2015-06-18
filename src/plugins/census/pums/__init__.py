@@ -11,9 +11,10 @@ SUMLEVEL = 'sumlevel'
 GEO = 'geo_id'
 PUMA = 'puma'
 STATE = 'state'
+NATION = 'nation'
 
 def lookup_sumlevel_by_name(name):
-    sumlevel_map = {PUMA : "79500US", STATE: "04000US"}
+    sumlevel_map = {PUMA : "79500US", STATE: "04000US", NATION: "01000US"}
     if name in sumlevel_map:
         return sumlevel_map[name]
     raise InvalidSettingException("Unknown sumlevel: {}".format(name))
@@ -69,7 +70,9 @@ def _prepare(df, settings=None, pk=[]):
     if sumlevel_name == PUMA:
         df.loc[df.PUMA.notnull(), GEO] = df[GEO] + df.PUMA.astype(int).astype(str).str.zfill(5)
         df.loc[df.PUMA.isnull(), GEO] = df[GEO] + 'XXXXX'
-    # if "geo" in pk:
+    elif sumlevel_name == NATION:
+        df[GEO] = sumlevel
+
     return df
 
 def _convert_pumas(df, pk, var_map):

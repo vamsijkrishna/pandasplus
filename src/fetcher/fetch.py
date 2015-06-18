@@ -1,10 +1,18 @@
 import os
 import ftplib
 import urllib
+import progressbar
 
 from src.pipeline.exceptions import InvalidSettingException
 from src.pipeline.consts import *
 from src.pipeline.settings_helper import get_var
+
+bar = progressbar.ProgressBar(maxval=100, widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+
+def progress(count, block_size, total_size):
+    percent = int(count) * block_size * 100.0 / total_size
+    percent = min(percent, 100)
+    bar.update(percent)
 
 def grab_if_needed(file_path, gconf, var_map):
     if not os.path.isfile(file_path):
@@ -46,7 +54,10 @@ def _do_http(file_path, web_paths, var_map):
             parent_dir = os.path.dirname(file_path)
             if not os.path.exists(parent_dir):
                 os.makedirs(parent_dir)
-            urllib.urlretrieve(url, file_path)
+            bar.start()
+            urllib.urlretrieve(url, file_path, reporthook=progress)
+            print "", "Done"
+            bar.finish()
             return file_path
 
 def _do_ftp(ftp_host, user, passwd, server_path, parsed_filename, file_path):

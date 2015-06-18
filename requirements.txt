@@ -10,11 +10,14 @@ pytz==2014.10
 rarfile==2.6
 six==1.9.0
 tables==3.1.1
-sqlalchemy
-fuzzywuzzy
-python-Levenshtein
+SQLAlchemy==1.0.4
+fuzzywuzzy==0.5.0
+python-Levenshtein==0.12.0
+progressbar==2.3
+
 # for postgres
-psycopg2
+psycopg2==2.6
+
 # for mysql
 #mysql-connector-python==1.2.2
 #mysql-utilities==1.4.3
