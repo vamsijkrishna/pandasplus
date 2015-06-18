@@ -1,10 +1,13 @@
 import pandas as pd
 
 from src.pipeline.exceptions import InvalidSettingException
-from src.pipeline.consts import VALUES, COLUMN, NAME
+from src.pipeline.consts import *
+
+PERSON = 'person'
+
 
 def compute(df, settings={}, pk=[]):
-    weight_col = "PWGTP"
+    weight_col = "PWGTP" if not MODE in settings or settings[MODE] == PERSON else "WGTP"
 
     count_value = "num_ppl"
     df[count_value] = df[ weight_col ]

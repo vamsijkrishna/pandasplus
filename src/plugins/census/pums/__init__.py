@@ -5,7 +5,7 @@ from src.pipeline.exceptions import InvalidSettingException
 from src.plugins.census.pums.classfication_converter import naics_convert, occ_convert
 from src.plugins.census.pums import statistics
 from src.plugins.census.pums import puma_converter
-
+from src.pipeline.consts import MODE
 weight_col = "PWGTP"
 SUMLEVEL = 'sumlevel'
 GEO = 'geo_id'
@@ -48,7 +48,8 @@ def _replace(tdf, col, val1, val2):
 def _prepare(df, settings=None, pk=[]):
     # -- FIRST filter out anyone under the age of 16
     #    and any wage not greater than 0.
-    df = df[(df.AGEP >= 16) & (df.WAGP > 0)].copy()
+    if not MODE in settings or settings[MODE] == statistics.PERSON:
+        df = df[(df.AGEP >= 16) & (df.WAGP > 0)].copy()
 
     sumlevel_name = settings[SUMLEVEL] if SUMLEVEL in settings else 'puma'
     sumlevel = lookup_sumlevel_by_name(sumlevel_name)

@@ -82,18 +82,26 @@ class Builder(BaseBuilder):
             addtl_rows = pd.concat([addtl_rows, table])
         return addtl_rows
 
+    def name_xform(self, setts):
+        if isinstance(setts, str):
+            print "Found string in settings...Looking up named transformations"
+            return self._get_config([GLOBAL, NAMED_TRANSFORMS, setts])
+        return setts
+
     def _computed_columns(self, computed, df, agg=None, pk=[], var_map={}):
         # print "COMP", computed, pk
         if computed:
             if type(computed) == dict:
                 computed = [computed]
             for c in computed:
-                for k,v in c.items():
-                    if type(v) == list:
-                        for i in v:
-                            df = process_operation(df, k, i, agg, pk, var_map)
+                for colname, setts in c.items():
+                    if isinstance(setts, list):
+                        for setts_i in v:
+                            setts_i = self.name_xform(setts_i)
+                            df = process_operation(df, colname, setts_i, agg, pk, var_map)
                     else:
-                        df = process_operation(df, k, v, agg, pk, var_map)
+                        setts = self.name_xform(setts)
+                        df = process_operation(df, colname, setts, agg, pk, var_map)
         return df
 
     def _compute_lengths(self, should_compute, table, pk, table_conf):
