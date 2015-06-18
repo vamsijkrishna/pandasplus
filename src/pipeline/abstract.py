@@ -99,10 +99,12 @@ class BaseBuilder(object):
         index_col = self._get_config([GLOBAL, INDEX_COL], optional=True, default=False)
         usecols = self._get_config([GLOBAL, USECOLS], optional=True, default=None)
 
-        print na_values
         df = pd.read_csv(file_obj, header=0, sep=delim, encoding=encoding, decimal=dec, converters=self.coerce, na_values=na_values, index_col=index_col, usecols=usecols)
+
         if columns:
+            import gc
             df = df[columns].copy()
+            gc.collect()
         return df
 
     def _multi_files_to_df(self, file_obj, archive_files, var_map={}):
