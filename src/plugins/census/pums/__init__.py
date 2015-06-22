@@ -77,16 +77,16 @@ def _prepare(df, settings=None, pk=[]):
 
 def _convert_pumas(df, pk, var_map):
     # TODO: only need to do this if we have a geography in the PK
-    print df.columns
+    print "Converting PUMAs..."
     if "PUMA00" in df.columns and "PUMA10" in df.columns:
         df = puma_converter.update_puma(df, "PUMA00")
     elif "PUMA" in df.columns and not "PUMA00" in df.columns and not "PUMA10" in df.columns:
         # -- only need to run update IFF year < 2012
         if int(var_map["year"]) < 2012:
-            df = puma_converter.update_puma(df, GEO)
+            df = puma_converter.update_puma(df, "PUMA00")
         else:
             print "NO PUMA conversion required...simply renaming column..."
-            df.rename(columns={"POWPUMA": "POWPUMA10"}, inplace=True)
+            df.rename(columns={"PUMA": "PUMA10"}, inplace=True)
     else:
         raise Exception("Invalid PUMA structure.")
     return df
