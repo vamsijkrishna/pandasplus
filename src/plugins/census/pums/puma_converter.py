@@ -38,7 +38,7 @@ def randomizer(code):
     return tmpdf.iloc[selected_idx].PUMA10
 
 def update_puma(df, on_col):
-    to_drop = []
+    to_drop = [] if on_col == PUMA else [on_col]
     df[on_col] = df[on_col].apply(randomizer)
     df.loc[df[on_col].notnull(), PUMA] = df[on_col]
     if PUMA10 in df.columns:
