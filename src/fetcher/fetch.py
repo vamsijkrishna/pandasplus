@@ -50,15 +50,21 @@ def _do_http(file_path, web_paths, var_map):
         for var, val in var_map.items():
             url = url.replace("<{}>".format(var), val)
         if directory_path in file_path:
-            print "About to download {} to {}".format(url, file_path)
-            parent_dir = os.path.dirname(file_path)
-            if not os.path.exists(parent_dir):
-                os.makedirs(parent_dir)
-            bar.start()
-            urllib.urlretrieve(url, file_path, reporthook=progress)
-            print "", "Done"
-            bar.finish()
-            return file_path
+            try:
+                print "About to download {} to {}".format(url, file_path)
+                parent_dir = os.path.dirname(file_path)
+                if not os.path.exists(parent_dir):
+                    os.makedirs(parent_dir)
+                bar.start()
+                urllib.urlretrieve(url, file_path, reporthook=progress)
+                print "", "Done"
+                bar.finish()
+                return file_path
+            except IOError:
+                print "Could not use source", directory_path, url
+                print "Trying next source..."
+                continue
+    raise InvalidSettingException("No valid web path provided!")
 
 def _do_ftp(ftp_host, user, passwd, server_path, parsed_filename, file_path):
     print "Retrieving from %s..." % (ftp_host)
