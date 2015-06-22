@@ -24,8 +24,8 @@ def process(df, settings=None, pk=[], var_map={}):
     print "AGEP" in df.columns, " HAS AGEP?"
     print df.columns
 
+    df = _convert_pumas(df, pk, var_map)
     df = _prepare(df, settings, pk)
-    # df = _convert_pumas(df, pk, var_map)
     df, pk = _post_process(df, settings, pk, var_map=var_map)
     df = statistics.compute(df, settings, pk)
 
@@ -77,14 +77,13 @@ def _prepare(df, settings=None, pk=[]):
 
 def _convert_pumas(df, pk, var_map):
     # TODO: only need to do this if we have a geography in the PK
-    if "PUMA00" in df.columns and "PUMA10":
-        raise Exception("TODO!")
+    print df.columns
+    if "PUMA00" in df.columns and "PUMA10" in df.columns:
+        df = puma_converter.update_puma(df, "PUMA00")
     elif "PUMA" in df.columns and not "PUMA00" in df.columns and not "PUMA10" in df.columns:
         # -- only need to run update IFF year < 2012
         if int(var_map["year"]) < 2012:
-            # df = puma_converter.update_puma(df, "PUMA")
-            df['geo'] = df.ST + df.PUMA
-            df = puma_converter.update_puma(df, "geo")
+            df = puma_converter.update_puma(df, GEO)
         else:
             print "NO PUMA conversion required...simply renaming column..."
             df.rename(columns={"POWPUMA": "POWPUMA10"}, inplace=True)
