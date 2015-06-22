@@ -24,8 +24,6 @@ puma_map[COL_RATE] = puma_map["SUM_H7V001"] / puma_map["total_sum"]
 puma_map.drop(["FREQUENCY", "PERCPOP10", "SUM_H7V001", "total_sum"], axis=1, inplace=True)
 
 
-
-
 def randomizer(code):
     if code == UNKNOWN:
         return UNKNOWN

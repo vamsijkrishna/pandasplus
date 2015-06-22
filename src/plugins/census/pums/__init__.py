@@ -23,13 +23,33 @@ def process(df, settings=None, pk=[], var_map={}):
     print "SCHL" in df.columns
     print "AGEP" in df.columns, " HAS AGEP?"
     print df.columns
-
-    df = _convert_pumas(df, pk, var_map)
+    g_pk = None
     df = _prepare(df, settings, pk)
-    df, pk = _post_process(df, settings, pk, var_map=var_map)
-    df = statistics.compute(df, settings, pk)
+    df = _post_process(df, settings, pk, var_map=var_map)
+
+    if GEO in pk:
+        g_pk = _geo_prepare(df, settings, pk)
+
+    if not g_pk:
+        df = statistics.compute(df, settings, pk)
+    else:
+        df = statistics.compute(df, settings, g_pk)
+        df = _convert_pumas(df, pk, var_map)
+        df = _geo_process(df, settings, pk)
+        # IN PROGRESSS~~~
 
     return df
+
+def _geo_prepare(df, settings, pk):
+    to_save = ["ST"]
+    if "PUMA00" in df.columns and "PUMA10" in df.columns:
+        to_save += ["PUMA00", "PUMA10"]
+    elif "PUMA" in df.columns and not "PUMA00" in df.columns and not "PUMA10" in df.columns:
+        to_save.append("PUMA")
+
+    g_idx = pk.index(GEO)
+    g_pk = pk[:g_idx] + to_save + pk[g_idx+1:]
+    return g_pk
 
 def _post_process(df, settings, pk, var_map={}):
     print "PK=", pk
@@ -39,7 +59,7 @@ def _post_process(df, settings, pk, var_map={}):
         df = naics_convert(df, var_map)
     if needs_occ:
         df = occ_convert(df, var_map)
-    return df, pk
+    return df
 
 def _replace(tdf, col, val1, val2):
     if col in tdf.columns:
@@ -53,6 +73,9 @@ def _prepare(df, settings=None, pk=[]):
     if not MODE in settings or settings[MODE] == statistics.PERSON:
         df = df[(df.AGEP >= 16) & (df.WAGP > 0)].copy()
 
+    return df
+
+def _geo_process(df, settings=None, pk=[]):
     sumlevel_name = settings[SUMLEVEL] if SUMLEVEL in settings else 'puma'
     sumlevel = lookup_sumlevel_by_name(sumlevel_name)
 
@@ -67,13 +90,11 @@ def _prepare(df, settings=None, pk=[]):
     df.loc[df.ST.notnull(), GEO] = sumlevel + df.ST.astype(int).astype(str).str.zfill(2)
     df.loc[df.ST.isnull(), 'ST'] = sumlevel + 'XX'
 
-    # df.loc[df.POWPUMA.str.len() == 0, 'POWPUMA'] = None
     if sumlevel_name == PUMA:
         df.loc[df.PUMA.notnull(), GEO] = df[GEO] + df.PUMA.astype(int).astype(str).str.zfill(5)
         df.loc[df.PUMA.isnull(), GEO] = df[GEO] + 'XXXXX'
     elif sumlevel_name == NATION:
         df[GEO] = sumlevel
-
     return df
 
 def _convert_pumas(df, pk, var_map):
