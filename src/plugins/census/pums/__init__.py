@@ -25,22 +25,26 @@ def process(df, settings=None, pk=[], var_map={}):
     print df.columns
     g_pk = None
     df = _prepare(df, settings, pk)
-    df = _post_process(df, settings, pk, var_map=var_map)
+    # df = _post_process(df, settings, pk, var_map=var_map)
 
     if GEO in pk:
-        g_pk = _geo_prepare(df, settings, pk)
+        g_pk,delta_pk = _geo_prepare(df, settings, pk)
+
+    print df.head()
 
     if not g_pk:
         df = statistics.compute(df, settings, pk)
     else:
+        print "Do geo work..."
         df = statistics.compute(df, settings, g_pk)
-        df = _convert_pumas(df, pk, var_map)
+        df = _convert_pumas(df, None, var_map)
         df = _geo_process(df, settings, pk)
-        # IN PROGRESSS~~~
+        df.drop(delta_pk, axis=1, inplace=True)
 
     return df
 
 def _geo_prepare(df, settings, pk):
+    print "Prepare for geographic processing..."
     to_save = ["ST"]
     if "PUMA00" in df.columns and "PUMA10" in df.columns:
         to_save += ["PUMA00", "PUMA10"]
@@ -49,7 +53,7 @@ def _geo_prepare(df, settings, pk):
 
     g_idx = pk.index(GEO)
     g_pk = pk[:g_idx] + to_save + pk[g_idx+1:]
-    return g_pk
+    return g_pk, to_save
 
 def _post_process(df, settings, pk, var_map={}):
     print "PK=", pk
