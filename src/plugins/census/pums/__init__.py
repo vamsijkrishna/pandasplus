@@ -47,6 +47,7 @@ def _replace(tdf, col, val1, val2):
     return tdf
 
 def _prepare(df, settings=None, pk=[]):
+    print "Preparing DF for analysis..."
     # -- FIRST filter out anyone under the age of 16
     #    and any wage not greater than 0.
     if not MODE in settings or settings[MODE] == statistics.PERSON:
@@ -83,10 +84,9 @@ def _convert_pumas(df, pk, var_map):
     elif "PUMA" in df.columns and not "PUMA00" in df.columns and not "PUMA10" in df.columns:
         # -- only need to run update IFF year < 2012
         if int(var_map["year"]) < 2012:
-            df = puma_converter.update_puma(df, "PUMA00")
+            df = puma_converter.update_puma(df, "PUMA")
         else:
-            print "NO PUMA conversion required...simply renaming column..."
-            df.rename(columns={"PUMA": "PUMA10"}, inplace=True)
+            print "NO PUMA conversion required..."
     else:
         raise Exception("Invalid PUMA structure.")
     return df
