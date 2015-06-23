@@ -46,7 +46,7 @@ def update_puma(df, on_col):
     return df
 
 if __name__ == '__main__':
-    moi = pd.DataFrame({PUMA: ["0100300"], "val": [40]})
+    moi = pd.DataFrame({PUMA: ["5100600"], "val": [40]})
     print update_puma(moi, PUMA)
 
 
