@@ -92,6 +92,7 @@ def _convert_pumas(df, settings, pk, var_map):
                 print "Running converter2..."
                 df = puma_converter2.update_puma(df, "PUMA")
             else:
+                df = _make_geo_id(df, "PUMA")
                 print "NO PUMA conversion required..."
         else:
             raise Exception("Invalid PUMA structure.")
