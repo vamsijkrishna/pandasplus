@@ -21,3 +21,7 @@ psycopg2==2.6
 # for mysql
 #mysql-connector-python==1.2.2
 #mysql-utilities==1.4.3
+
+# experimental packages
+enum34
+numba

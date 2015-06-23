@@ -1,3 +1,4 @@
+import numba
 import pandas as pd
 from numpy.random import choice
 from classfication_converter import get_path, COL_RATE
@@ -23,7 +24,7 @@ puma_map = pd.merge(puma_map, puma_coder, on=PUMA00, how="left")
 puma_map[COL_RATE] = puma_map["SUM_H7V001"] / puma_map["total_sum"]
 puma_map.drop(["FREQUENCY", "PERCPOP10", "SUM_H7V001", "total_sum"], axis=1, inplace=True)
 
-
+@numba.jit
 def randomizer(code):
     if code == UNKNOWN:
         return UNKNOWN
@@ -35,11 +36,12 @@ def randomizer(code):
     selected_idx = choice(range(len(tmpdf)), p=tmpdf[COL_RATE].values)
     return tmpdf.iloc[selected_idx].PUMA10
 
-def update_puma(df, on_col):
+@numba.jit
+def update_puma(df, on_col, has_puma10=False):
     to_drop = [] if on_col == PUMA else [on_col]
     df[on_col] = df[on_col].apply(randomizer)
     df.loc[df[on_col].notnull(), PUMA] = df[on_col]
-    if PUMA10 in df.columns:
+    if has_puma10:
         df.loc[df[PUMA10].notnull(), PUMA] = df[PUMA10]
         to_drop.append(PUMA10)
     df.drop(to_drop, axis=1, inplace=True)
