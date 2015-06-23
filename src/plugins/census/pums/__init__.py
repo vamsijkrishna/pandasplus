@@ -5,7 +5,7 @@ from src.pipeline.consts import COLUMNS
 from src.pipeline.exceptions import InvalidSettingException
 from src.plugins.census.pums.classfication_converter import naics_convert, occ_convert
 from src.plugins.census.pums import statistics
-from src.plugins.census.pums import puma_converter
+from src.plugins.census.pums import puma_converter2
 from src.pipeline.consts import MODE
 
 weight_col = "PWGTP"
@@ -83,14 +83,14 @@ def _convert_pumas(df, settings, pk, var_map):
         if "PUMA00" in df.columns and "PUMA10" in df.columns:
             df = _make_geo_id(df, "PUMA00")
             df = _make_geo_id(df, "PUMA10")
-            df = puma_converter.update_puma(df, "PUMA00", True)
+            df = puma_converter2.update_puma(df, "PUMA00", True)
         elif "PUMA" in df.columns and not "PUMA00" in df.columns and not "PUMA10" in df.columns:
             # -- only need to run update IFF year < 2012
             if int(var_map["year"]) < 2012:
                 print "Setup geo ids..."
                 df = _make_geo_id(df, "PUMA")
-                print "Running converter..."
-                df = puma_converter.update_puma(df, "PUMA")
+                print "Running converter2..."
+                df = puma_converter2.update_puma(df, "PUMA")
             else:
                 print "NO PUMA conversion required..."
         else:
