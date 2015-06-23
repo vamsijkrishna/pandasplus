@@ -7,7 +7,7 @@ PUMA = 'PUMA'
 PUMA00 = 'PUMA00'
 PUMA10 = 'PUMA10'
 UNKNOWN = 'XXXXXXX'
-
+KATRINA_PUMA = '2277777'
 POWSP= 'POWSP'
 
 puma_map = pd.read_csv(get_path('data/PUMA_00_to_10.csv'), converters={"POWSP": str, "PUMA00": str, "PUMA10": str})
@@ -30,11 +30,13 @@ puma_map = puma_map.set_index("PUMA00")
 def randomizer(code):
     if code == UNKNOWN:
         return UNKNOWN
+    if code == KATRINA_PUMA:
+        return KATRINA_PUMA
 
     tmpdf = puma_map.ix[code]
 
-    if tmpdf.empty:
-        return code
+    # if tmpdf.empty:
+        # return code
     if isinstance(tmpdf, pd.Series):
         return tmpdf.PUMA10
 
