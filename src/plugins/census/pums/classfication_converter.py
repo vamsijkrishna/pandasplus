@@ -219,7 +219,7 @@ def occ_convert(df, var_map):
             df.drop(SOC_10, axis=1, inplace=True)
         elif soc_mode == SOC_12:
             pass # Nothing to do!
-
+    df.rename(columns={"SOCP12": "soc"}, inplace=True)
     return df
 
 def handle_class(df, vintages, standard):
@@ -268,7 +268,7 @@ def naics_convert(df, var_map):
         elif naics_mode == NAICS_12:
             print "Nothing to do!"
             pass # Nothing to do!
-
+    df.rename(columns={"NAICSP12": "naics"}, inplace=True)
     return df
 
 if __name__ == '__main__':
