@@ -220,22 +220,18 @@ def occ_convert(df, var_map):
         print "Spotted SOCP00 in columns...first convert this."
         df = _convert(df, SOC_00, school_mode)
         df = _convert(df, SOC_10, school_mode)
-        df.drop([SOC_00, SOC_10], axis=1, inplace=True)
     elif SOC_10 in df.columns:
         print "Spotted SOCP10 in columns...first convert this."
         print df, "HERE!!!"
         df = _convert(df, SOC_10, school_mode)
-        df.drop(SOC_10, axis=1, inplace=True)
     else:
         print "*** single SOCP ****"
         df.rename(columns={"SOCP": soc_mode}, inplace=True)
         if soc_mode == SOC_00:
             df = _convert(df, SOC_00, school_mode)
             df = _convert(df, SOC_10, school_mode)
-            df.drop(SOC_00, axis=1, inplace=True)
         elif soc_mode == SOC_10:
             df = _convert(df, SOC_10, school_mode)
-            df.drop(SOC_10, axis=1, inplace=True)
         elif soc_mode == SOC_12:
             pass # Nothing to do!
         
