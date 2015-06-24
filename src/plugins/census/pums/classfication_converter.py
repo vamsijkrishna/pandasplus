@@ -268,11 +268,9 @@ def naics_convert(df, var_map):
         print "Spotted NAICSP02 in columns...first convert this."
         df = _convert(df, NAICS_02, school_mode)
         df = _convert_07_to_12(df)
-        df.drop(NAICS_02, axis=1, inplace=True)
     elif NAICS_07 in df.columns:
         print "Spotted NAICSP07 in columns...first convert this."
         df = _convert_07_to_12(df)
-        df.drop(NAICS_07, axis=1, inplace=True)
     else:
         print "*** single NAICSP ****"
         df.rename(columns={"NAICSP": naics_mode}, inplace=True)
@@ -280,11 +278,9 @@ def naics_convert(df, var_map):
             print "Detected NAICS02...converting..."
             df = _convert(df, NAICS_02, school_mode)
             df = _convert_07_to_12(df)
-            df.drop(NAICS_02, axis=1, inplace=True)
         elif naics_mode == NAICS_07:
             print "Detected NAICS07. Converting to NAICS12..."
             df = _convert_07_to_12(df)
-            df.drop(NAICS_07, axis=1, inplace=True)
         elif naics_mode == NAICS_12:
             print "Nothing to do!"
             pass # Nothing to do!
